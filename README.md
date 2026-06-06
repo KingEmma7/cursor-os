@@ -157,7 +157,7 @@ node ~/cursor-os/scripts/init.mjs init
 
 `npx cursor-os init` is planned for a future release.
 
-Before publishing, run through [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md). The checklist covers repo sync, package metadata, installer checks, template quality, and `npm pack --dry-run`.
+Before publishing, run through [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md). The checklist covers release readiness, package metadata, installer checks, template quality, and `npm pack --dry-run`.
 
 ## CLI reference
 

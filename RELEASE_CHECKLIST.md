@@ -1,12 +1,12 @@
 # Release checklist
 
-Use this checklist before syncing Cursor OS into the clean `KingEmma7/cursor-os` repo or publishing to npm.
+Use this checklist before tagging a public release or publishing Cursor OS to npm.
 
 ## Repository
 
-- [ ] Clean repo exists at `https://github.com/KingEmma7/cursor-os`.
+- [ ] Clean repo is live at `https://github.com/KingEmma7/cursor-os`.
 - [ ] Default branch is correct.
-- [ ] README badge URLs point to the clean repo and resolve.
+- [ ] README badge URLs point to the public repo and resolve.
 - [ ] Repository description matches the README tagline: "Make Cursor project-aware."
 - [ ] Topics include `cursor`, `agents-md`, `ai-assisted-development`, and `developer-tools`.
 - [ ] Issue templates and PR template are present.
