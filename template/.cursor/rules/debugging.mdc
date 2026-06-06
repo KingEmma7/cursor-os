@@ -1,0 +1,13 @@
+---
+description: Debugging discipline. Apply when investigating a bug, test failure, or unexpected behavior.
+alwaysApply: false
+---
+
+Opt-in debugging discipline: find the root cause before changing code. For a structured walkthrough, use the `debugging-loop` skill.
+
+- Reproduce first. Establish the exact steps and the expected-vs-actual behavior before forming a fix.
+- Diagnose before editing. Read the failing path and form a hypothesis; don't guess-and-check by mutating code.
+- Change the cause, not the symptom. Avoid masking errors with broad try/catch, retries, or silencing logs.
+- Make the smallest fix that addresses the root cause. Keep unrelated cleanup out of the bugfix.
+- Prove it. Add or run a test (or a concrete manual check) that fails before the fix and passes after.
+- If the bug revealed a gap in project memory, note it in `docs/repo-memory.md` so it doesn't recur.

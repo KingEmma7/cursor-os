@@ -1,0 +1,54 @@
+{
+  "name": "cursor-os",
+  "version": "0.1.0",
+  "description": "An installable operating layer that makes Cursor project-aware: a portable engineering contract, rules, memory docs, and prompts that adapt to any repository.",
+  "type": "module",
+  "bin": {
+    "cursor-os": "./scripts/init.mjs"
+  },
+  "scripts": {
+    "init": "node scripts/init.mjs init",
+    "doctor": "node scripts/init.mjs doctor",
+    "pack:dry-run": "npm pack --dry-run",
+    "test": "node scripts/smoke-test.mjs"
+  },
+  "files": [
+    "template",
+    "scripts",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "CODE_OF_CONDUCT.md",
+    "RELEASE_CHECKLIST.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
+  ],
+  "keywords": [
+    "cursor",
+    "cursor-os",
+    "cursor-rules",
+    "agents-md",
+    "ai",
+    "ai-agents",
+    "ai-assisted-development",
+    "project-memory",
+    "developer-tools",
+    "prompt-engineering",
+    "software-engineering"
+  ],
+  "author": "Emmanuel Tagbor",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KingEmma7/cursor-os.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KingEmma7/cursor-os/issues"
+  },
+  "homepage": "https://github.com/KingEmma7/cursor-os#readme",
+  "engines": {
+    "node": ">=18"
+  }
+}

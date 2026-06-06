@@ -1,0 +1,19 @@
+---
+description: UI/component conventions. Apply when building or changing user-facing frontend code.
+globs:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.vue"
+  - "**/*.svelte"
+alwaysApply: false
+---
+
+Opt-in frontend discipline. Localization should delete this file if the project has no UI, or replace the generic guidance with the project's real component, state, and styling conventions.
+
+- Reuse the existing component library, design tokens, and styling system. Don't introduce a second way to do the same thing.
+- Do not introduce a new styling system unless the project already uses it or the user explicitly approves it.
+- Handle every state: loading, empty, error, and success. Don't ship the happy path alone.
+- Make interactive elements accessible: real semantics, keyboard support, focus states, and labels for assistive tech.
+- Keep components focused. Extract a subcomponent or hook when one grows too large or mixes concerns.
+- Derive UI from state; avoid duplicating server data into local state that can drift.
+- Match existing data-fetching, error-handling, and form-validation patterns rather than inventing new ones.

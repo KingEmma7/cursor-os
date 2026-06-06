@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+---
+
+The engineering contract for this repo lives in `AGENTS.md` (auto-loaded). Follow it. This rule only adds Cursor-specific behavior so the contract is not duplicated token-for-token on every request.
+
+- Consult project memory before non-trivial work: `docs/repo-memory.md` (durable facts), `docs/decision-log.md` (past decisions). Don't contradict a logged decision without flagging it.
+- When project-specific docs conflict, prefer the newest explicit decision in `docs/decision-log.md`, then update stale docs.
+- For multi-file, risky, or ambiguous changes, use Plan mode (or write a short plan) and get alignment before editing.
+- Gate completion on `docs/quality-rubric.md`. Don't claim done until its checks pass with evidence.
+- Keep memory current: when you learn a durable fact or make a notable decision, update `docs/repo-memory.md` or append to `docs/decision-log.md`.
+- If a rule, doc, or `AGENTS.md` claim is stale or wrong, fix it as part of your change instead of working around it.
