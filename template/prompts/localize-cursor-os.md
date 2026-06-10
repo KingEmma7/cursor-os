@@ -34,9 +34,9 @@ Report any other file you believe should change, but do not change it.
 
 2. **Extract the real commands.** Find the actual install / dev / test / lint / typecheck / build commands from scripts and CI. Use these verbatim — do not assume conventional names.
 
-3. **Fill `docs/repo-memory.md`.** Replace every TODO you can verify: what the project is, stack, organization, commands, conventions, and constraints. Leave TODOs only where the repo genuinely doesn't answer the question.
+3. **Fill `docs/repo-memory.md`.** Replace every TODO you can verify: what the project is, stack, organization, commands, conventions, and constraints. Leave TODOs only where the repo genuinely doesn't answer the question. When done, delete the install-time blockquote note near the top of the file.
 
-4. **Fill `AGENTS.md` project-context section.** Keep it to a few true sentences; point to `docs/architecture.md` for detail rather than duplicating it.
+4. **Fill `AGENTS.md` project-context section.** Keep it to a few true sentences; point to `docs/architecture.md` for detail rather than duplicating it. When done, delete the install-time blockquote note near the top of the file.
 
 5. **Create `docs/architecture.md`** if the project is non-trivial: the main modules/services, how data flows, key boundaries, and important patterns — all grounded in the code. Skip it for a tiny repo and say why.
 

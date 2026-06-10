@@ -49,6 +49,6 @@
   },
   "homepage": "https://github.com/KingEmma7/cursor-os#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

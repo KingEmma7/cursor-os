@@ -51,21 +51,27 @@ At this point, Cursor sees the files, but `AGENTS.md` and `docs/repo-memory.md` 
 Running `node scripts/init.mjs doctor` confirms:
 
 ```
-Cursor OS v0.1.0 — doctor
+Cursor OS vX.Y.Z — doctor
 Target: /home/user/task-api
 
   ok   AGENTS.md
-        note: 5 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
+        note: 4 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
   ok   .cursor/rules/core.mdc
   ok   .cursor/skills/implementation-loop/SKILL.md
   ok   .cursor/agents/verifier.md
   ok   docs/repo-memory.md
-        note: 12 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
+        note: 10 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
   ok   docs/quality-rubric.md
   ok   prompts/localize-cursor-os.md
   ok   .cursor/.cursor-os-version
 
 Cursor OS is installed. Run prompts/localize-cursor-os.md to complete setup.
+```
+
+After localization fills the placeholders (and removes the install-time notes), the same command reports:
+
+```
+Cursor OS appears installed and localized.
 ```
 
 ---

@@ -6,11 +6,32 @@ on:
     branches: [main]
 
 jobs:
-  smoke-test:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+      - name: Syntax-check scripts
+        run: |
+          node --check scripts/init.mjs
+          node --check scripts/smoke-test.mjs
+      - name: Validate package.json parses
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"
+      - name: Preview npm package contents
+        run: npm run pack:dry-run
+
+  smoke-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
       - run: npm test

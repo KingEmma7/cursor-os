@@ -2,7 +2,7 @@
 
 Durable facts about this repository that an agent should know before working in it. Keep it short, current, and true — stale memory is worse than none. Update it whenever a fact here changes or you learn something the next session would need.
 
-> Most of this is filled in by the localization prompt (`prompts/localize-cursor-os.md`). Replace TODO markers with real details; delete sections that don't apply. Never invent facts — leave a TODO if unsure.
+> Most of this is filled in by the localization prompt (`prompts/localize-cursor-os.md`). Replace placeholder markers with real details; delete sections that don't apply. Never invent facts — leave a placeholder marker if unsure. Delete this note once localization is done.
 
 ## What this project is
 

@@ -22,6 +22,7 @@ Use this checklist before tagging a public release or publishing Cursor OS to np
 ## Installer and CLI
 
 - [ ] `node scripts/init.mjs --help` shows `init`, `doctor`, `--target`, `--dry-run`, and `--version`.
+- [ ] `node scripts/init.mjs` with no arguments prints help and writes nothing.
 - [ ] `node scripts/init.mjs --version` matches `package.json`.
 - [ ] `node scripts/init.mjs init --dry-run --target <tmp>` writes nothing.
 - [ ] `node scripts/init.mjs init --target <tmp>` installs the expected file set.
@@ -41,6 +42,7 @@ Use this checklist before tagging a public release or publishing Cursor OS to np
 
 - [ ] `npm test` passes.
 - [ ] `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"` succeeds.
+- [ ] No hardcoded version strings in `README.md` or `examples/` (the badge is dynamic; example outputs use `vX.Y.Z`). Versions appear only in `package.json` and `CHANGELOG.md`.
 - [ ] Final old-branding search has no matches outside historical changelog context.
 - [ ] Final search has no numbered prompt references outside historical changelog context.
 
