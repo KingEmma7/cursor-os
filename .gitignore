@@ -17,3 +17,15 @@ Thumbs.db
 .tmp/
 tmp/
 *.local
+
+# npm pack output
+*.tgz
+
+# cursor-os installed on itself (dogfooded). The files below are byte-for-byte
+.cursor/agents/
+.cursor/skills/
+.cursor/.cursor-os-version
+.cursor/rules/core.mdc
+.cursor/rules/debugging.mdc
+.cursor/rules/frontend.mdc
+prompts/

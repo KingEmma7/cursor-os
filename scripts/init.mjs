@@ -110,7 +110,7 @@ function parseArgs(argv) {
 const HELP = `Cursor OS — installer
 
 Usage:
-  node scripts/init.mjs <command> [target] [options]
+  cursor-os <command> [target] [options]
 
 Commands:
   init      Install Cursor OS into the target directory
@@ -126,16 +126,17 @@ Options:
   -h, --help        Show this help
 
 Examples:
-  node scripts/init.mjs init
-  node scripts/init.mjs init --dry-run
-  node scripts/init.mjs init --target ./my-project
-  node scripts/init.mjs doctor
-  node scripts/init.mjs doctor --target ./my-project
+  cursor-os init
+  cursor-os init --dry-run
+  cursor-os init --target ./my-project
+  cursor-os doctor
+  cursor-os doctor --target ./my-project
 
 Notes:
   A command is required; bare invocation prints this help and writes nothing.
   For a target directory named "init" or "doctor", or one starting with "-",
   use the explicit form: init --target <dir>.
+  When running from a local checkout: node scripts/init.mjs <command>
 
 The installer copies AGENTS.md, .cursor/, docs/, and prompts/ into the target.
 It never overwrites existing user files — it skips them and reports.
@@ -303,7 +304,7 @@ function runInit(args) {
 
   console.log("\nPost-install check:");
   if (missing > 0) {
-    console.log(`  ${missing} expected file(s) missing — run: node scripts/init.mjs doctor --target ${args.target}`);
+    console.log(`  ${missing} expected file(s) missing — run: cursor-os doctor --target ${args.target}`);
   } else if (health.todoCount > 0) {
     console.log(`  All files installed. ${health.todoCount} placeholder(s) await localization.`);
   } else {
@@ -342,12 +343,25 @@ function runDoctor(args) {
   } else if (allPresent) {
     console.log("Cursor OS is installed. Run prompts/localize-cursor-os.md to complete setup.");
   } else {
-    console.log("Cursor OS is not fully installed. Run: node scripts/init.mjs init");
+    console.log("Cursor OS is not fully installed. Run: cursor-os init");
     process.exitCode = 1;
   }
 }
 
+// Minimum supported Node major version. Keep in sync with package.json engines.
+const MIN_NODE_MAJOR = 20;
+
 function main() {
+  // engines in package.json is advisory only — fail fast with a clear message.
+  const nodeMajor = Number(process.versions.node.split(".")[0]);
+  if (nodeMajor < MIN_NODE_MAJOR) {
+    console.error(
+      `Error: cursor-os requires Node.js ${MIN_NODE_MAJOR} or newer (you are running ${process.versions.node}).`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   const args = parseArgs(process.argv.slice(2));
 
   if (args.errors.length) {

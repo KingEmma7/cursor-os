@@ -22,6 +22,20 @@ jobs:
       - name: Preview npm package contents
         run: npm run pack:dry-run
 
+      - name: E2E — install from tarball and run the bin
+        run: |
+          npm pack
+          mkdir -p /tmp/e2e/proj
+          cd /tmp/e2e
+          npm init -y > /dev/null
+          npm install "$GITHUB_WORKSPACE"/cursor-os-*.tgz
+          ./node_modules/.bin/cursor-os init --target ./proj
+          ./node_modules/.bin/cursor-os doctor --target ./proj
+          # bare invocation must print help and write nothing
+          ./node_modules/.bin/cursor-os | grep -q "Usage:"
+          # programmatic import must resolve
+          node -e "import('cursor-os').then(m => { if (typeof m.install !== 'function') process.exit(1); })"
+
   smoke-test:
     strategy:
       fail-fast: false

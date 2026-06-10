@@ -46,13 +46,22 @@ Use this checklist before tagging a public release or publishing Cursor OS to np
 - [ ] Final old-branding search has no matches outside historical changelog context.
 - [ ] Final search has no numbered prompt references outside historical changelog context.
 
+## Packaging integrity
+
+- [ ] `npm pack`, install the tarball into a scratch project, and run the bin: `init`, `doctor`, and bare invocation all behave. (CI runs this on every push.)
+- [ ] `import('cursor-os')` resolves and exposes `install` and `doctor`.
+- [ ] `head -1 scripts/init.mjs` is exactly `#!/usr/bin/env node` (no CRLF, no BOM).
+- [ ] No stray `*.tgz` files tracked in git.
+
 ## npm publishing
 
 Only after all previous sections pass:
 
+- [ ] npm account has 2FA enabled (at minimum for writes).
 - [ ] Confirm the intended version.
 - [ ] Update `CHANGELOG.md` with release date.
 - [ ] Create a git tag for the release.
 - [ ] Run `npm publish --dry-run`.
 - [ ] Run `npm publish` only when intentionally publishing.
-- [ ] After publish, update README install examples from local script usage to `npx cursor-os init`.
+- [ ] README install examples use the `npx cursor-os` form (done in the release commit, not after).
+- [ ] After publish, verify with `npm view cursor-os` and `npx cursor-os@latest init --dry-run --target <tmp>`.

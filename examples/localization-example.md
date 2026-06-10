@@ -21,7 +21,7 @@ Cursor guesses at the routing style, invents an ORM method that doesn't match wh
 You run:
 
 ```bash
-node ../cursor-os/scripts/init.mjs init
+npx cursor-os init
 ```
 
 The following files are now in the project root:
@@ -48,7 +48,7 @@ prompts/update-repo-memory.md
 
 At this point, Cursor sees the files, but `AGENTS.md` and `docs/repo-memory.md` contain only TODO markers. The OS is installed but not yet project-aware.
 
-Running `node scripts/init.mjs doctor` confirms:
+Running `npx cursor-os doctor` confirms:
 
 ```
 Cursor OS vX.Y.Z — doctor

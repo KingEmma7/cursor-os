@@ -50,9 +50,8 @@ The installer copies these files. The localization prompt fills them in for your
 **Step 1 — Install the base OS** (the installer does this):
 
 ```bash
-git clone https://github.com/KingEmma7/cursor-os.git ~/cursor-os
 cd /path/to/your-project
-node ~/cursor-os/scripts/init.mjs init
+npx cursor-os init
 ```
 
 This gives you the structure. The files contain TODO placeholders — Cursor knows to use them, but they don't yet describe your project.
@@ -71,13 +70,13 @@ Cursor OS is designed to drop into any project at any stage — greenfield or ma
 
 ```bash
 # From the root of any existing project
-node /path/to/cursor-os/scripts/init.mjs init
+npx cursor-os init
 
 # Preview what would be installed first
-node /path/to/cursor-os/scripts/init.mjs init --dry-run
+npx cursor-os init --dry-run
 
 # Check if Cursor OS is already installed
-node /path/to/cursor-os/scripts/init.mjs doctor
+npx cursor-os doctor
 ```
 
 For new repos, create your project normally first, then run the installer from the project root. This repository's root is the Cursor OS source project, not the installed project layout.
@@ -91,10 +90,10 @@ After localization:
 - When you paste `prompts/plan-feature.md` into Cursor and describe a feature, the plan references your actual architecture and patterns without you explaining them.
 - When you paste `prompts/implement-change.md`, Cursor follows your conventions without being told.
 
-Use the Cursor OS checkout to check the installation state:
+Check the installation state of any project:
 
 ```bash
-node ~/cursor-os/scripts/init.mjs doctor --target /path/to/your-project
+npx cursor-os doctor --target /path/to/your-project
 ```
 
 Example output:
@@ -147,9 +146,9 @@ See the [prompts guide](template/prompts/README.md) (installs as `prompts/README
 
 Custom instruction sets or system-prompt files (sometimes called "behavioral guideline packs") tell Cursor how to behave generically. Cursor OS does something different: it tells Cursor about *this* project specifically. The two are complementary. Cursor OS files live in the repo, travel with the code, and get updated as the project evolves.
 
-## Current status
+## Installing from a checkout
 
-Cursor OS is **not published to npm yet**. For v0.1, clone the repo and run the installer script directly.
+If you prefer not to use npm, clone the repo and run the installer script directly — it behaves identically:
 
 ```bash
 git clone https://github.com/KingEmma7/cursor-os.git ~/cursor-os
@@ -157,14 +156,12 @@ cd your-project
 node ~/cursor-os/scripts/init.mjs init
 ```
 
-`npx cursor-os init` is planned for a future release.
-
-Before publishing, run through [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md). The checklist covers release readiness, package metadata, installer checks, template quality, and `npm pack --dry-run`.
+Maintainers: before tagging a release, run through [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
 
 ## CLI reference
 
 ```
-node scripts/init.mjs <command> [target] [options]
+npx cursor-os <command> [target] [options]
 
 Commands:
   init      Install Cursor OS into the target directory
@@ -177,7 +174,7 @@ Options:
   -h, --help        Show this help
 ```
 
-A command is required: bare invocation (`node scripts/init.mjs` with no arguments) prints help and never writes files. For a target directory named `init` or `doctor`, or one whose name starts with `-`, use the explicit form `init --target <dir>`. Requires Node.js 20 or newer.
+A command is required: bare invocation (`npx cursor-os` with no arguments) prints help and never writes files. For a target directory named `init` or `doctor`, or one whose name starts with `-`, use the explicit form `init --target <dir>`. Requires Node.js 20 or newer.
 
 ## What gets installed
 
@@ -221,8 +218,9 @@ prompts/
 
 ## Roadmap
 
-- `v0.1` — installable operating layer: contract, rules, skills, verifier, docs, prompts, installer, doctor command.
-- `v0.2` — npm publishing (`npx cursor-os init`), interactive setup with project detection, stack presets (Next.js, Supabase, Vercel).
+- `v0.1` — installable operating layer: contract, rules, skills, verifier, docs, prompts, installer, doctor command. ✅
+- `v0.2` — npm publishing (`npx cursor-os init`), safer CLI defaults, post-install health check, version-drift detection. ✅
+- Next — interactive setup with project detection, stack presets (Next.js, Supabase, Vercel).
 
 ## Contributing
 

@@ -2,6 +2,13 @@
 
 Append-only record of notable decisions for the Cursor OS project itself. Newest first. (Not part of the installable template — `template/docs/decision-log.md` is what gets installed into user projects.)
 
+## 2026-06-10 — v0.2.0 publishes manually; CI publishing with provenance deferred
+
+- **Decision:** The first npm release is published manually by the maintainer (`npm publish` from a tagged, CI-green commit). Automated publishing from GitHub Actions with npm provenance/trusted publishing is deferred.
+- **Context:** Provenance attestation requires publishing from CI with OIDC; setting that up needs npm-side trusted-publisher configuration that doesn't exist yet. Shipping v0.2.0 should not block on it.
+- **Alternatives:** A release workflow gated on tags with `NPM_TOKEN` — rejected for now: a half-configured workflow that fails on first use is worse than a documented manual process. CI already verifies the exact tarball end-to-end on every push.
+- **Consequences:** No provenance badge on the first release. Revisit before v0.3: configure npm trusted publishing and add a tag-triggered release workflow with `--provenance`.
+
 ## 2026-06-10 — Localization detection stays a placeholder-marker heuristic
 
 - **Decision:** `doctor` detects unfinished localization by counting `\bTODO\b` matches in `AGENTS.md` and `docs/repo-memory.md`. Instructional prose in those template files must not contain the literal word "TODO", and the localization prompt instructs deleting the install-time notes when done.

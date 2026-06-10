@@ -6,6 +6,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+<!-- Add new changes here. -->
+
+## [0.2.0] — 2026-06-10
+
+First npm release: `npx cursor-os init`.
+
 ### Added
 
 - `init` now runs a post-install health check automatically: it reports missing files, the remaining placeholder count, and the exact next step (including a Cursor CLI one-liner for running localization).
@@ -13,6 +19,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Smoke tests for the localized success path ("installed and localized"), version-drift reporting, the post-install check, and the new bare-invocation behavior (126 checks).
 - CI hardening: smoke tests run on Node 20 and 22 across Ubuntu and Windows; a separate job syntax-checks the scripts, validates `package.json` parses, and previews the npm package contents.
 - `docs/decision-log.md` recording the CLI default, upgrade-semantics, Node-version, and localization-detection decisions.
+- Programmatic API: `import { install, doctor } from "cursor-os"` now resolves via the package `exports` field.
+- Runtime Node version guard: the CLI fails fast with a clear message on Node older than 20 (the `engines` field is advisory only).
+- CI end-to-end packaging test: packs the tarball, installs it into a scratch project, and runs the `cursor-os` bin (`init`, `doctor`, bare help, and programmatic import).
+- `.gitattributes` enforcing LF line endings — a CRLF shebang would break the published bin on Unix.
+- `.gitignore` entry for `*.tgz` (local `npm pack` output).
 
 ### Changed (breaking, pre-publish)
 
@@ -60,7 +71,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Not done yet
 
-- npm publishing (`npx cursor-os init`) — planned for `v0.2`.
+- Interactive setup with project detection and stack presets (Next.js, Supabase, Vercel) — planned for a future release.
 
 ## [0.1.0] — 2026-06-02
 

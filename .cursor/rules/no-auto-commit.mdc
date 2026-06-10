@@ -1,0 +1,14 @@
+---
+description: Never commit or push without explicit user instruction.
+alwaysApply: true
+---
+
+# No auto-commit
+
+Never run `git commit`, `git push`, `git tag`, or `npm publish` unless the user explicitly asks (e.g. "commit this", "push", "publish").
+
+- Show the user what changed and let them decide.
+- Use `git diff` or `git status` output to summarise changes in your response instead.
+- If you are about to perform a git write operation, stop and confirm first.
+
+This applies regardless of how small, clean, or obviously-correct the change appears.
