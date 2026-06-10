@@ -12,6 +12,7 @@ import {
   copyFileSync,
   readdirSync,
   statSync,
+  realpathSync,
 } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
@@ -330,6 +331,19 @@ function main() {
 }
 
 // Only run main when invoked directly, not when imported by the smoke test.
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+// realpathSync normalizes symlinks (e.g. macOS /tmp → /private/tmp).
+function isDirectInvocation() {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(fileURLToPath(import.meta.url)) ===
+      realpathSync(process.argv[1])
+    );
+  } catch {
+    return fileURLToPath(import.meta.url) === process.argv[1];
+  }
+}
+
+if (isDirectInvocation()) {
   main();
 }
