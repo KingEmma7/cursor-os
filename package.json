@@ -4,7 +4,7 @@
   "description": "An installable operating layer that makes Cursor project-aware: a portable engineering contract, rules, memory docs, and prompts that adapt to any repository.",
   "type": "module",
   "bin": {
-    "cursor-os": "./scripts/init.mjs"
+    "cursor-os": "scripts/init.mjs"
   },
   "exports": {
     ".": "./scripts/init.mjs"
