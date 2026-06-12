@@ -21,7 +21,7 @@ Cursor guesses at the routing style, invents an ORM method that doesn't match wh
 You run:
 
 ```bash
-node ../cursor-os/scripts/init.mjs init
+npx cursor-os init
 ```
 
 The following files are now in the project root:
@@ -48,24 +48,30 @@ prompts/update-repo-memory.md
 
 At this point, Cursor sees the files, but `AGENTS.md` and `docs/repo-memory.md` contain only TODO markers. The OS is installed but not yet project-aware.
 
-Running `node scripts/init.mjs doctor` confirms:
+Running `npx cursor-os doctor` confirms:
 
 ```
-Cursor OS v0.1.0 — doctor
+Cursor OS vX.Y.Z — doctor
 Target: /home/user/task-api
 
   ok   AGENTS.md
-        note: 5 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
+        note: 4 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
   ok   .cursor/rules/core.mdc
   ok   .cursor/skills/implementation-loop/SKILL.md
   ok   .cursor/agents/verifier.md
   ok   docs/repo-memory.md
-        note: 12 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
+        note: 10 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
   ok   docs/quality-rubric.md
   ok   prompts/localize-cursor-os.md
   ok   .cursor/.cursor-os-version
 
 Cursor OS is installed. Run prompts/localize-cursor-os.md to complete setup.
+```
+
+After localization fills the placeholders (and removes the install-time notes), the same command reports:
+
+```
+Cursor OS appears installed and localized.
 ```
 
 ---

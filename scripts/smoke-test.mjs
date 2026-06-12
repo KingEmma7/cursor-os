@@ -240,6 +240,73 @@ withTempDir((dir) => {
   check("doctor reports actual TODO placeholder count", result.todoCount > 0);
 });
 
+// 8b. doctor — a fully localized install reaches the success state.
+console.log("\ndoctor (localized install):");
+withTempDir((dir) => {
+  install({ target: dir });
+  // Simulate localization: real content, no placeholder markers left.
+  writeFileSync(
+    join(dir, "AGENTS.md"),
+    [
+      "# AGENTS.md",
+      "",
+      "## Project context",
+      "",
+      "- **What this is:** Internal task API for ops teams.",
+      "- **Stack:** Node.js 22, Fastify, PostgreSQL 16, Fly.io.",
+      "- **How it's organized:** See docs/architecture.md.",
+      "- **Build / test / run commands:** npm install / npm test / npm run dev.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  writeFileSync(
+    join(dir, "docs", "repo-memory.md"),
+    [
+      "# Repo Memory",
+      "",
+      "## What this project is",
+      "",
+      "Internal task-management REST API for operations teams.",
+      "",
+      "## Commands that matter",
+      "",
+      "- Install: npm install",
+      "- Test: npm test",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const result = doctor({ target: dir });
+  check("doctor reports zero placeholders on a localized install", result.todoCount === 0);
+  check("doctor still reports all files present", result.checks.every((c) => c.present));
+
+  const cli = runCli(["doctor", "--target", dir]);
+  check("CLI doctor localized install exits 0", cli.status === 0);
+  check(
+    "CLI doctor localized install reports installed and localized",
+    cli.stdout.includes("installed and localized"),
+  );
+});
+
+// 8c. doctor — reports version drift between the marker and current package.
+console.log("\ndoctor (version drift):");
+withTempDir((dir) => {
+  install({ target: dir });
+  writeFileSync(join(dir, ".cursor", ".cursor-os-version"), "cursor-os 0.0.1\n", "utf8");
+
+  const result = doctor({ target: dir });
+  check("doctor exposes the installed marker version", result.markerVersion === "0.0.1");
+
+  const cli = runCli(["doctor", "--target", dir]);
+  check("CLI doctor exits 0 despite version drift", cli.status === 0);
+  check(
+    "CLI doctor notes the version drift",
+    cli.stdout.includes("installed from cursor-os 0.0.1"),
+  );
+});
+
 // 9. CLI entry point coverage.
 console.log("\nCLI:");
 withTempDir((dir) => {
@@ -254,6 +321,15 @@ withTempDir((dir) => {
   const initDefault = runCli(["init", "--target", dir]);
   check("CLI init --target exits 0", initDefault.status === 0);
   check("CLI init --target creates AGENTS.md", existsSync(join(dir, "AGENTS.md")));
+  check(
+    "CLI init prints a post-install check with placeholder count",
+    initDefault.stdout.includes("Post-install check:") &&
+      initDefault.stdout.includes("await localization"),
+  );
+  check(
+    "CLI init points at the localization prompt",
+    initDefault.stdout.includes("prompts/localize-cursor-os.md"),
+  );
 
   const doctorInstalled = runCli(["doctor", "--target", dir]);
   check("CLI doctor installed dir exits 0", doctorInstalled.status === 0);
@@ -268,9 +344,11 @@ withTempDir((dir) => {
 });
 
 withTempDir((dir) => {
+  // Flags without a command must fail instead of silently defaulting to init.
   const directDryRun = runCli(["--dry-run"], { cwd: dir });
-  check("CLI direct --dry-run exits 0", directDryRun.status === 0);
-  check("CLI direct --dry-run writes nothing", listAll(dir).length === 0);
+  check("CLI --dry-run without command exits non-zero", directDryRun.status === 1);
+  check("CLI --dry-run without command prints error", directDryRun.stderr.includes("missing command"));
+  check("CLI --dry-run without command writes nothing", listAll(dir).length === 0);
 });
 
 withTempDir((dir) => {
@@ -280,9 +358,19 @@ withTempDir((dir) => {
 });
 
 withTempDir((dir) => {
+  // Bare invocation is read-only: prints help, writes nothing.
+  const bare = runCli([], { cwd: dir });
+  check("CLI bare invocation exits 0", bare.status === 0);
+  check("CLI bare invocation prints help", bare.stdout.includes("Usage:") && bare.stdout.includes("doctor"));
+  check("CLI bare invocation writes nothing", listAll(dir).length === 0);
+});
+
+withTempDir((dir) => {
+  // A bare path without a command must fail instead of installing.
   const legacyPath = runCli([dir]);
-  check("CLI bare path target exits 0 for backwards compatibility", legacyPath.status === 0);
-  check("CLI bare path target creates AGENTS.md", existsSync(join(dir, "AGENTS.md")));
+  check("CLI bare path without command exits non-zero", legacyPath.status === 1);
+  check("CLI bare path without command prints error", legacyPath.stderr.includes("missing command"));
+  check("CLI bare path without command writes nothing", listAll(dir).length === 0);
 });
 
 withTempDir((dir) => {
@@ -292,19 +380,18 @@ withTempDir((dir) => {
 });
 
 withTempDir((dir) => {
-  // Bare relative name with no slash must be treated as a target, not an error
-  const bareRelative = runCli(["my-project"], { cwd: dir });
-  check("CLI bare relative name treated as target, exits 0", bareRelative.status === 0);
-  check("CLI bare relative name creates AGENTS.md inside it", existsSync(join(dir, "my-project", "AGENTS.md")));
+  // Bare relative name still resolves as a target when init is explicit.
+  const bareRelative = runCli(["init", "my-project"], { cwd: dir });
+  check("CLI init with bare relative name exits 0", bareRelative.status === 0);
+  check("CLI init with bare relative name creates AGENTS.md inside it", existsSync(join(dir, "my-project", "AGENTS.md")));
 });
 
 withTempDir((dir) => {
   // Options before subcommand must be allowed: --target DIR doctor
-  const targetBeforeCmd = runCli(["--target", dir, "doctor"]);
   install({ target: dir });
-  const targetBeforeCmd2 = runCli(["--target", dir, "doctor"]);
-  check("CLI --target before subcommand is accepted", targetBeforeCmd2.status === 0);
-  check("CLI --target before subcommand runs doctor", targetBeforeCmd2.stdout.includes("doctor"));
+  const targetBeforeCmd = runCli(["--target", dir, "doctor"]);
+  check("CLI --target before subcommand is accepted", targetBeforeCmd.status === 0);
+  check("CLI --target before subcommand runs doctor", targetBeforeCmd.stdout.includes("doctor"));
 });
 
 withTempDir((dir) => {

@@ -1,10 +1,13 @@
 {
   "name": "cursor-os",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An installable operating layer that makes Cursor project-aware: a portable engineering contract, rules, memory docs, and prompts that adapt to any repository.",
   "type": "module",
   "bin": {
     "cursor-os": "./scripts/init.mjs"
+  },
+  "exports": {
+    ".": "./scripts/init.mjs"
   },
   "scripts": {
     "init": "node scripts/init.mjs init",
@@ -14,7 +17,7 @@
   },
   "files": [
     "template",
-    "scripts",
+    "scripts/init.mjs",
     "examples",
     "README.md",
     "LICENSE",
@@ -38,7 +41,10 @@
     "prompt-engineering",
     "software-engineering"
   ],
-  "author": "Emmanuel Tagbor",
+  "author": {
+    "name": "Emmanuel Tagbor",
+    "url": "https://github.com/KingEmma7"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -49,6 +55,6 @@
   },
   "homepage": "https://github.com/KingEmma7/cursor-os#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

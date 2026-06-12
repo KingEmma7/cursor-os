@@ -11,15 +11,19 @@ import {
   mkdirSync,
   copyFileSync,
   readdirSync,
-  statSync,
+  lstatSync,
+  realpathSync,
 } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
 const templateDir = join(repoRoot, "template");
 const MARKER_REL = join(".cursor", ".cursor-os-version");
+
+// Prose files doctor scans for unfilled placeholder markers.
+const TODO_FILES = ["AGENTS.md", join("docs", "repo-memory.md")];
 
 function readVersion() {
   try {
@@ -37,10 +41,13 @@ function readVersion() {
  * command: "init" | "doctor" | null
  *
  * Supported forms:
- *   node init.mjs [init] [target] [--dry-run] [--target DIR]
+ *   node init.mjs init [target] [--dry-run] [--target DIR]
  *   node init.mjs doctor [target] [--target DIR]
  *   node init.mjs --help | -h
  *   node init.mjs --version | -v
+ *
+ * A command is required when any other argument is given. A bare invocation
+ * with no arguments prints help — it never writes files.
  */
 function parseArgs(argv) {
   const args = {
@@ -49,6 +56,7 @@ function parseArgs(argv) {
     target: process.cwd(),
     help: false,
     version: false,
+    bare: argv.length === 0,
     errors: [],
   };
   let targetSet = false;
@@ -76,9 +84,8 @@ function parseArgs(argv) {
       args.errors.push(`unknown option: ${a}`);
     }
     else if (!targetSet) {
-      // Any bare, non-flag, non-subcommand word is a target path.
-      // This preserves backwards-compat for `node init.mjs my-project` as well
-      // as absolute or slash-prefixed paths.
+      // Any bare, non-flag, non-subcommand word is a target path
+      // (absolute, relative, or a plain directory name).
       args.target = a;
       targetSet = true;
     } else {
@@ -86,9 +93,10 @@ function parseArgs(argv) {
     }
   }
 
-  // Default command
-  if (args.command === null && !args.help && !args.version) {
-    args.command = "init";
+  // A command is required whenever arguments are given. Bare invocation
+  // (no args at all) falls through to help so `npx cursor-os` is read-only.
+  if (args.command === null && !args.help && !args.version && !args.bare) {
+    args.errors.push("missing command: specify 'init' or 'doctor'");
   }
 
   if (args.command === "doctor" && args.dryRun) {
@@ -102,10 +110,10 @@ function parseArgs(argv) {
 const HELP = `Cursor OS — installer
 
 Usage:
-  node scripts/init.mjs [command] [target] [options]
+  cursor-os <command> [target] [options]
 
 Commands:
-  init      Install Cursor OS into the target directory (default)
+  init      Install Cursor OS into the target directory
   doctor    Check whether Cursor OS is installed in the target directory
 
 Arguments:
@@ -118,12 +126,17 @@ Options:
   -h, --help        Show this help
 
 Examples:
-  node scripts/init.mjs
-  node scripts/init.mjs init
-  node scripts/init.mjs init --dry-run
-  node scripts/init.mjs init --target ./my-project
-  node scripts/init.mjs doctor
-  node scripts/init.mjs doctor --target ./my-project
+  cursor-os init
+  cursor-os init --dry-run
+  cursor-os init --target ./my-project
+  cursor-os doctor
+  cursor-os doctor --target ./my-project
+
+Notes:
+  A command is required; bare invocation prints this help and writes nothing.
+  For a target directory named "init" or "doctor", or one starting with "-",
+  use the explicit form: init --target <dir>.
+  When running from a local checkout: node scripts/init.mjs <command>
 
 The installer copies AGENTS.md, .cursor/, docs/, and prompts/ into the target.
 It never overwrites existing user files — it skips them and reports.
@@ -131,12 +144,17 @@ After installing, open Cursor and run prompts/localize-cursor-os.md.`;
 
 // ── File helpers ──────────────────────────────────────────────────────────────
 
-/** Recursively collect files under dir as paths relative to dir. */
+/**
+ * Recursively collect files under dir as paths relative to dir.
+ * Uses lstat so symlinked directories are not recursed into (prevents cycles).
+ * Symlinks to files are included and copied as their target's content by
+ * copyFileSync; symlinks to directories are skipped (not recursed, not copied).
+ */
 function listFiles(dir) {
   const out = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
+    if (lstatSync(full).isDirectory()) {
       for (const child of listFiles(full)) out.push(join(entry, child));
     } else {
       out.push(entry);
@@ -207,9 +225,19 @@ function doctorChecks() {
   ];
 }
 
+/** Read the installed version from the marker file, or null if unreadable. */
+function readMarkerVersion(target) {
+  try {
+    const content = readFileSync(join(target, MARKER_REL), "utf8");
+    return content.match(/cursor-os (\S+)/)?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Check whether Cursor OS appears installed in target.
- * Returns { checks: [{label, present, note}], todoCount, target }.
+ * Returns { checks: [{label, present, note}], todoCount, markerVersion, target }.
  * Never modifies files.
  */
 export function doctor({ target } = {}) {
@@ -221,17 +249,14 @@ export function doctor({ target } = {}) {
     let note = null;
     let todoCount = 0;
 
-    if (present) {
-      // Flag unfilled TODO placeholders in key prose files
-      const TODO_FILES = ["AGENTS.md", join("docs", "repo-memory.md")];
-      if (TODO_FILES.includes(rel)) {
-        try {
-          const content = readFileSync(fullPath, "utf8");
-          todoCount = (content.match(/\bTODO\b/g) ?? []).length;
-          if (todoCount > 0) note = `${todoCount} TODO placeholder(s) remain — run prompts/localize-cursor-os.md`;
-        } catch {
-          // ignore read errors
-        }
+    // Flag unfilled TODO placeholders in key prose files
+    if (present && TODO_FILES.includes(rel)) {
+      try {
+        const content = readFileSync(fullPath, "utf8");
+        todoCount = (content.match(/\bTODO\b/g) ?? []).length;
+        if (todoCount > 0) note = `${todoCount} TODO placeholder(s) remain — run prompts/localize-cursor-os.md`;
+      } catch {
+        // ignore read errors
       }
     }
 
@@ -239,7 +264,7 @@ export function doctor({ target } = {}) {
   });
 
   const todoCount = checks.reduce((n, c) => n + c.todoCount, 0);
-  return { checks, todoCount, target };
+  return { checks, todoCount, markerVersion: readMarkerVersion(target), target };
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
@@ -266,9 +291,31 @@ function runInit(args) {
 
   if (args.dryRun) {
     console.log("\nDry run complete — no files were written.");
+    return;
+  }
+
+  // Post-install health check: confirm the install and surface what
+  // localization still needs to fill in, so the next step is unmissable.
+  const health = doctor({ target: args.target });
+  const missing = health.checks.filter((c) => !c.present).length;
+  // Show a relative path only when the target is inside this checkout.
+  const rel = relative(repoRoot, args.target);
+  let where = rel || "this repo";
+  if (rel.startsWith("..")) where = resolve(args.target);
+
+  console.log("\nPost-install check:");
+  if (missing > 0) {
+    console.log(`  ${missing} expected file(s) missing — run: cursor-os doctor --target ${args.target}`);
+  } else if (health.todoCount > 0) {
+    console.log(`  All files installed. ${health.todoCount} placeholder(s) await localization.`);
   } else {
-    const where = relative(repoRoot, args.target) || "this repo";
-    console.log(`\nDone. Next: open Cursor and run prompts/localize-cursor-os.md to adapt the OS to ${where}.`);
+    console.log("  All files installed and localized.");
+  }
+
+  if (health.todoCount > 0) {
+    console.log(`\nNext: open Cursor in ${where} and run prompts/localize-cursor-os.md to adapt the OS to your project.`);
+    console.log('Tip: with the Cursor CLI installed you can run it directly:');
+    console.log('  cursor-agent -p "$(cat prompts/localize-cursor-os.md)"');
   }
 }
 
@@ -286,18 +333,36 @@ function runDoctor(args) {
     if (!present) allPresent = false;
   }
 
+  if (result.markerVersion && result.markerVersion !== version) {
+    console.log(`\n  note: installed from cursor-os ${result.markerVersion}; current is ${version}.`);
+    console.log("        Re-run init to add any files introduced since (existing files are never overwritten).");
+  }
+
   console.log("");
   if (allPresent && result.todoCount === 0) {
     console.log("Cursor OS appears installed and localized.");
   } else if (allPresent) {
     console.log("Cursor OS is installed. Run prompts/localize-cursor-os.md to complete setup.");
   } else {
-    console.log("Cursor OS is not fully installed. Run: node scripts/init.mjs init");
+    console.log("Cursor OS is not fully installed. Run: cursor-os init");
     process.exitCode = 1;
   }
 }
 
+// Minimum supported Node major version. Keep in sync with package.json engines.
+const MIN_NODE_MAJOR = 20;
+
 function main() {
+  // engines in package.json is advisory only — fail fast with a clear message.
+  const nodeMajor = Number(process.versions.node.split(".")[0]);
+  if (nodeMajor < MIN_NODE_MAJOR) {
+    console.error(
+      `Error: cursor-os requires Node.js ${MIN_NODE_MAJOR} or newer (you are running ${process.versions.node}).`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   const args = parseArgs(process.argv.slice(2));
 
   if (args.errors.length) {
@@ -312,7 +377,7 @@ function main() {
     return;
   }
 
-  if (args.help) {
+  if (args.help || args.bare) {
     console.log(HELP);
     return;
   }
@@ -330,6 +395,19 @@ function main() {
 }
 
 // Only run main when invoked directly, not when imported by the smoke test.
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+// realpathSync normalizes symlinks (e.g. macOS /tmp → /private/tmp).
+function isDirectInvocation() {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(fileURLToPath(import.meta.url)) ===
+      realpathSync(process.argv[1])
+    );
+  } catch {
+    return fileURLToPath(import.meta.url) === process.argv[1];
+  }
+}
+
+if (isDirectInvocation()) {
   main();
 }

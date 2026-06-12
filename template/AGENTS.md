@@ -2,7 +2,7 @@
 
 This file is the engineering contract for this repository. Cursor reads it automatically; other tools can use it as plain markdown project guidance. Keep it accurate as the project's source of truth for *how* work gets done here.
 
-> After installing Cursor OS, run the localization prompt (`prompts/localize-cursor-os.md`) so the sections below describe *this* project specifically. Replace the TODO markers with real details.
+> After installing Cursor OS, run the localization prompt (`prompts/localize-cursor-os.md`) so the sections below describe *this* project specifically. Replace the placeholder markers with real details, then delete this note.
 
 ## Project context
 

@@ -1,0 +1,3 @@
+# Normalize line endings to LF everywhere. A CRLF shebang in scripts/init.mjs
+# would break the published bin on Unix, so this is a correctness guard, not style.
+* text=auto eol=lf
