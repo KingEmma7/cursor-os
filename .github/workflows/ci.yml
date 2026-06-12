@@ -34,7 +34,7 @@ jobs:
           # bare invocation must print help and write nothing
           ./node_modules/.bin/cursor-os | grep -q "Usage:"
           # programmatic import must resolve
-          node -e "import('cursor-os').then(m => { if (typeof m.install !== 'function') process.exit(1); })"
+          node -e "import('cursor-os').then(m => { if (typeof m.install !== 'function') process.exit(1); }).catch(() => process.exit(1))"
 
   smoke-test:
     strategy:

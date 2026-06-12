@@ -4,7 +4,7 @@ Durable facts about this repository. Keep it short, current, and true — stale 
 
 ## What this project is
 
-Cursor OS: an installable operating layer that makes Cursor project-aware. Developers run the installer into any repo, then run the localization prompt once in Cursor to fill in project-specific context. Published as an npm package (`cursor-os`), pre-release at v0.1.0.
+Cursor OS: an installable operating layer that makes Cursor project-aware. Developers run the installer into any repo, then run the localization prompt once in Cursor to fill in project-specific context. Published to npm as `cursor-os`.
 
 ## Stack and key dependencies
 
@@ -17,7 +17,7 @@ Cursor OS: an installable operating layer that makes Cursor project-aware. Devel
 
 ```
 template/          The kit installed into user projects (AGENTS.md, rules, skills, agents, docs, prompts)
-scripts/           init.mjs (installer + library) and smoke-test.mjs (127-check test suite)
+scripts/           init.mjs (installer + library) and smoke-test.mjs (installer smoke test suite)
 examples/          Before/after localization walkthrough
 docs/              This repo's own decision log (not installed into user projects)
 .cursor/           cursor-os installed on itself (dogfooded)

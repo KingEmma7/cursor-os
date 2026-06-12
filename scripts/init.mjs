@@ -146,8 +146,9 @@ After installing, open Cursor and run prompts/localize-cursor-os.md.`;
 
 /**
  * Recursively collect files under dir as paths relative to dir.
- * Uses lstat so a symlinked directory is treated as a file (copied as its
- * target's content) instead of recursed into — prevents symlink cycles.
+ * Uses lstat so symlinked directories are not recursed into (prevents cycles).
+ * Symlinks to files are included and copied as their target's content by
+ * copyFileSync; symlinks to directories are skipped (not recursed, not copied).
  */
 function listFiles(dir) {
   const out = [];
