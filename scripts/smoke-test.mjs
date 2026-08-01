@@ -354,6 +354,7 @@ withTempDir((dir) => {
   check("detect finds Supabase", result.services.includes("Supabase"));
   check("detect finds Vercel", result.services.includes("Vercel"));
   check("detect finds tooling", result.tooling.includes("Tailwind CSS") && result.tooling.includes("Vitest"));
+  check("detect identifies Turborepo tooling from its config", result.tooling.includes("Turborepo"));
   check(
     "detect emits stack presets",
     ["nextjs", "supabase", "vercel"].every((preset) => result.presets.includes(preset)),
@@ -362,6 +363,21 @@ withTempDir((dir) => {
   check("detect preserves package scripts", result.packageScripts.test === "vitest run");
   check("detect includes signal evidence", result.evidence.some((item) => item.source === "package.json:next"));
   check("detect writes no files", JSON.stringify(listAll(dir)) === JSON.stringify(before));
+});
+
+console.log("\ndetect (task runner without workspace):");
+withTempDir((dir) => {
+  writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "single-package" }), "utf8");
+  writeFileSync(join(dir, "turbo.json"), "{}\n", "utf8");
+  writeFileSync(join(dir, "nx.json"), "{}\n", "utf8");
+
+  const result = detect({ target: dir });
+  check("task-runner configs do not imply a monorepo", result.workspace.monorepo === false);
+  check("task-runner configs are not workspace indicators", result.workspace.indicators.length === 0);
+  check(
+    "task-runner configs still identify tooling",
+    result.tooling.includes("Turborepo") && result.tooling.includes("Nx"),
+  );
 });
 
 console.log("\ndetect (malformed manifests):");

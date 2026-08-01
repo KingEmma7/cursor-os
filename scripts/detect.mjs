@@ -146,6 +146,12 @@ export function detect({ target } = {}) {
     addSignal(services, "Vercel", source);
     if (!presets.includes("vercel")) presets.push("vercel");
   }
+  for (const [rel, label] of [
+    ["turbo.json", "Turborepo"],
+    ["nx.json", "Nx"],
+  ]) {
+    if (isFile(resolvedTarget, rel)) addSignal(tooling, label, rel);
+  }
 
   const lockfiles = PACKAGE_MANAGER_MARKERS.filter(([, rel]) => isFile(resolvedTarget, rel));
   const declaredPackageManager = packageManagerName(packageJson?.packageManager);
@@ -167,7 +173,7 @@ export function detect({ target } = {}) {
   ) {
     workspaceIndicators.push("package.json:workspaces");
   }
-  for (const rel of ["pnpm-workspace.yaml", "turbo.json", "nx.json", "lerna.json"]) {
+  for (const rel of ["pnpm-workspace.yaml", "lerna.json"]) {
     if (isFile(resolvedTarget, rel)) workspaceIndicators.push(rel);
   }
 
