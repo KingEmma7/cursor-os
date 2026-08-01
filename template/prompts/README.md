@@ -16,10 +16,11 @@ These prompts are **not** loaded automatically by Cursor. Paste the relevant pro
 
 ## How to use a prompt
 
-1. Open Cursor chat (Agent mode).
-2. Copy the contents of the prompt file.
-3. Paste into the chat and fill in the placeholder (e.g., `<describe the feature>`).
-4. Send.
+1. For localization, optionally run `npx cursor-os detect --format json` first to expose evidence-backed stack signals.
+2. Open Cursor chat (Agent mode).
+3. Copy the contents of the prompt file.
+4. Paste into the chat and fill in the placeholder (e.g., `<describe the feature>`).
+5. Send.
 
 ## Typical flow for a new feature
 

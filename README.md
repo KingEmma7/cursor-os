@@ -45,6 +45,17 @@ prompts/
 
 The installer copies these files. The localization prompt fills them in for your project.
 
+Before localization, the read-only detector can extract evidence-backed stack signals
+from root manifests and configuration files:
+
+```bash
+npx cursor-os detect --format json
+```
+
+It reports languages, frameworks, services, tooling, package scripts, workspace shape,
+and applicable localization presets. It never edits the project, and its output is
+guidance—not a replacement for inspecting the actual code.
+
 ## The two-step setup
 
 **Step 1 — Install the base OS** (the installer does this):
@@ -117,6 +128,8 @@ Target: /path/to/your-project
 (Abbreviated — `doctor` lists every installed file; the version shown matches your checkout. The `note:` lines flag the unfilled TODO placeholders in `AGENTS.md` and `docs/repo-memory.md` that localization resolves. Once localization fills them, `doctor` reports "installed and localized". If the install came from an older Cursor OS version, `doctor` also notes the drift so you can re-run `init` to pick up new files.)
 
 `init` runs this same health check automatically after installing, so you always see the placeholder count and the next step without a separate command.
+When root manifests expose recognizable tooling, it also prints a concise set of
+detected project signals to ground the localization step.
 
 ## What Cursor loads automatically vs. what you paste
 
@@ -133,6 +146,9 @@ localize-cursor-os.md   (once after install)
        ↓
 plan-feature.md   →   implement-change.md   →   verify-work.md   →   review-pr.md
 ```
+
+For an evidence-first setup, run `npx cursor-os detect --format json` immediately
+before `prompts/localize-cursor-os.md`.
 
 See the [prompts guide](template/prompts/README.md) (installs as `prompts/README.md`) for when to use each prompt.
 
@@ -166,15 +182,32 @@ npx cursor-os <command> [target] [options]
 Commands:
   init      Install Cursor OS into the target directory
   doctor    Check whether Cursor OS is installed in the target directory
+  detect    Report project stack signals without modifying files
 
 Options:
   -n, --dry-run     Preview changes without writing anything (init only)
   -t, --target DIR  Use DIR as the target directory
+      --format TYPE Output text or json (detect only; default: text)
   -v, --version     Print version and exit
   -h, --help        Show this help
 ```
 
-A command is required: bare invocation (`npx cursor-os` with no arguments) prints help and never writes files. For a target directory named `init` or `doctor`, or one whose name starts with `-`, use the explicit form `init --target <dir>`. Requires Node.js 20 or newer.
+A command is required: bare invocation (`npx cursor-os` with no arguments) prints help and never writes files. For a target directory named `init`, `doctor`, or `detect`, or one whose name starts with `-`, use the intended command with `--target <dir>`. Requires Node.js 20 or newer.
+
+`detect` reads only root manifests, lockfiles, dependency names, and well-known config
+markers. JSON output uses a versioned schema and includes evidence for each signal plus
+non-fatal warnings for malformed manifests or competing lockfiles.
+
+## Programmatic API
+
+```js
+import { detect, doctor, install } from "cursor-os";
+
+const profile = detect({ target: process.cwd() });
+```
+
+All three APIs are dependency-free. `detect` and `doctor` are read-only; `install`
+preserves the no-overwrite contract.
 
 ## What gets installed
 
@@ -220,7 +253,8 @@ prompts/
 
 - `v0.1` — installable operating layer: contract, rules, skills, verifier, docs, prompts, installer, doctor command. ✅
 - `v0.2` — npm publishing (`npx cursor-os init`), safer CLI defaults, post-install health check, version-drift detection. ✅
-- Next — interactive setup with project detection, stack presets (Next.js, Supabase, Vercel).
+- `v0.3` — read-only project detection, deterministic JSON, and localization preset signals for Next.js, Supabase, and Vercel. 🚧 Unreleased
+- Next — opt-in interactive localization using the detected profile, with explicit review before edits.
 
 ## Contributing
 

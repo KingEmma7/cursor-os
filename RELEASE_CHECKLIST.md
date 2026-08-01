@@ -21,13 +21,14 @@ Use this checklist before tagging a public release or publishing Cursor OS to np
 
 ## Installer and CLI
 
-- [ ] `node scripts/init.mjs --help` shows `init`, `doctor`, `--target`, `--dry-run`, and `--version`.
+- [ ] `node scripts/init.mjs --help` shows `init`, `doctor`, `detect`, `--target`, `--format`, `--dry-run`, and `--version`.
 - [ ] `node scripts/init.mjs` with no arguments prints help and writes nothing.
 - [ ] `node scripts/init.mjs --version` matches `package.json`.
 - [ ] `node scripts/init.mjs init --dry-run --target <tmp>` writes nothing.
 - [ ] `node scripts/init.mjs init --target <tmp>` installs the expected file set.
 - [ ] `node scripts/init.mjs doctor --target <installed-tmp>` exits 0.
 - [ ] `node scripts/init.mjs doctor --target <empty-tmp>` exits non-zero and lists missing files.
+- [ ] `node scripts/init.mjs detect --target <project> --format json` emits parseable, evidence-backed JSON and writes nothing.
 - [ ] Invalid commands and invalid `--target` usage exit non-zero without writing files.
 
 ## Template quality
@@ -48,8 +49,8 @@ Use this checklist before tagging a public release or publishing Cursor OS to np
 
 ## Packaging integrity
 
-- [ ] `npm pack`, install the tarball into a scratch project, and run the bin: `init`, `doctor`, and bare invocation all behave. (CI runs this on every push.)
-- [ ] `import('cursor-os')` resolves and exposes `install` and `doctor`.
+- [ ] `npm pack`, install the tarball into a scratch project, and run the bin: `init`, `doctor`, `detect`, and bare invocation all behave. (CI runs this on every push.)
+- [ ] `import('cursor-os')` resolves and exposes `install`, `doctor`, and `detect`.
 - [ ] `head -1 scripts/init.mjs` is exactly `#!/usr/bin/env node` (no CRLF, no BOM).
 - [ ] No stray `*.tgz` files tracked in git.
 

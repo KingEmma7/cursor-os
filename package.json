@@ -12,12 +12,14 @@
   "scripts": {
     "init": "node scripts/init.mjs init",
     "doctor": "node scripts/init.mjs doctor",
+    "detect": "node scripts/init.mjs detect",
     "pack:dry-run": "npm pack --dry-run",
     "test": "node scripts/smoke-test.mjs"
   },
   "files": [
     "template",
     "scripts/init.mjs",
+    "scripts/detect.mjs",
     "examples",
     "README.md",
     "LICENSE",

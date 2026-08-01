@@ -12,7 +12,7 @@ This repository ships Cursor OS — an installable operating layer that makes Cu
 ## Repository layout
 
 - `template/` — the kit that gets copied into other projects. Never assume a specific stack here.
-- `scripts/` — the installer (`init.mjs`) and its smoke test. Node built-ins only; no dependencies.
+- `scripts/` — the CLI and install/doctor APIs (`init.mjs`), read-only project detection (`detect.mjs`), and smoke test. Node built-ins only; no dependencies.
 - `examples/` — concrete examples showing what localization looks like.
 - `docs/` — this repo's own decision log (not installed into user projects).
 - `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` — public-facing docs.
