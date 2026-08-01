@@ -10,14 +10,14 @@ Cursor OS: an installable operating layer that makes Cursor project-aware. Devel
 
 - **Language:** Node.js ESM (`.mjs`), zero runtime or dev dependencies by design
 - **Minimum Node:** 20 (enforced in `package.json` `engines`)
-- **Product:** `template/` (the installable kit) + `scripts/` (installer CLI)
+- **Product:** `template/` (the installable kit) + `scripts/` (installer, doctor, and read-only detector CLI)
 - **No build step:** scripts run directly with `node`
 
 ## How it's organised
 
 ```
 template/          The kit installed into user projects (AGENTS.md, rules, skills, agents, docs, prompts)
-scripts/           init.mjs (installer + library) and smoke-test.mjs (installer smoke test suite)
+scripts/           init.mjs (CLI + install/doctor APIs), detect.mjs (read-only project profile), smoke-test.mjs
 examples/          Before/after localization walkthrough
 docs/              This repo's own decision log (not installed into user projects)
 .cursor/           cursor-os installed on itself (dogfooded)
@@ -27,10 +27,11 @@ docs/              This repo's own decision log (not installed into user project
 
 - Install: none (zero dependencies)
 - Test: `npm test`
-- Lint / syntax-check: `node --check scripts/init.mjs && node --check scripts/smoke-test.mjs`
+- Lint / syntax-check: `node --check scripts/init.mjs && node --check scripts/detect.mjs && node --check scripts/smoke-test.mjs`
 - Pack preview: `npm run pack:dry-run`
 - Dry-run install: `node scripts/init.mjs init --dry-run`
 - Health check: `node scripts/init.mjs doctor`
+- Project detection: `node scripts/init.mjs detect --format json`
 - Build: none (no compile step)
 
 ## Conventions and gotchas
@@ -38,6 +39,7 @@ docs/              This repo's own decision log (not installed into user project
 - **Zero deps, always.** The installer must stay dependency-free (Node built-ins only). No devDependencies without a very strong reason.
 - **Template files are framework-neutral.** No stack presets in `template/`; all project-specific content is generated during localization.
 - **No-clobber invariant.** `install()` never overwrites existing files. Every test that touches this path must preserve it.
+- **Detection is advisory and read-only.** `detect()` uses root evidence only, returns a versioned report, and never replaces source inspection during localization.
 - **Idempotency.** Re-running `init` is always safe. Smoke tests verify second-run behaviour.
 - **EXPECTED list in smoke-test.mjs must stay in sync with template/.** When you add or remove a template file, update `EXPECTED` in `scripts/smoke-test.mjs`, `README.md`, and `CHANGELOG.md` together.
 - **Prompt files referenced by full path, never by number.** e.g. `prompts/plan-feature.md` not "prompt 1".
@@ -57,3 +59,4 @@ docs/              This repo's own decision log (not installed into user project
 - 2026-06-10 — `doctor`'s success state required rewriting template instruction notes so placeholder markers only appear as real placeholders. Fixed in audit remediation; the smoke test pins this.
 - 2026-06-10 — `listFiles` used `statSync` (follows symlinks); swapped to `lstatSync` to prevent cycle risk.
 - 2026-06-10 — CLI previously defaulted to `init`; now bare invocation prints help (breaking pre-publish, safe decision).
+- 2026-08-01 — `detect` adds evidence-backed stack and preset signals without persisting generated state or adding dependencies.

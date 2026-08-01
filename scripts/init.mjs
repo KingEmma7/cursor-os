@@ -16,6 +16,9 @@ import {
 } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative, resolve } from "node:path";
+import { detect, formatDetectionText } from "./detect.mjs";
+
+export { detect } from "./detect.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
@@ -37,12 +40,13 @@ function readVersion() {
 // ── Argument parsing ──────────────────────────────────────────────────────────
 
 /**
- * Parse argv into { command, dryRun, target, help, version }.
- * command: "init" | "doctor" | null
+ * Parse argv into { command, dryRun, target, format, help, version }.
+ * command: "init" | "doctor" | "detect" | null
  *
  * Supported forms:
  *   node init.mjs init [target] [--dry-run] [--target DIR]
  *   node init.mjs doctor [target] [--target DIR]
+ *   node init.mjs detect [target] [--target DIR] [--format text|json]
  *   node init.mjs --help | -h
  *   node init.mjs --version | -v
  *
@@ -53,6 +57,7 @@ function parseArgs(argv) {
   const args = {
     command: null,
     dryRun: false,
+    format: "text",
     target: process.cwd(),
     help: false,
     version: false,
@@ -60,12 +65,26 @@ function parseArgs(argv) {
     errors: [],
   };
   let targetSet = false;
+  let formatSet = false;
 
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--help" || a === "-h") { args.help = true; }
     else if (a === "--version" || a === "-v") { args.version = true; }
     else if (a === "--dry-run" || a === "-n") { args.dryRun = true; }
+    else if (a === "--format") {
+      const value = argv[i + 1];
+      if (!value || value.startsWith("-")) {
+        args.errors.push("--format requires text or json");
+      } else if (value !== "text" && value !== "json") {
+        args.errors.push(`unsupported format: ${value}`);
+        i++;
+      } else {
+        args.format = value;
+        formatSet = true;
+        i++;
+      }
+    }
     else if (a === "--target" || a === "-t") {
       const value = argv[i + 1];
       if (!value || value.startsWith("-")) {
@@ -76,7 +95,7 @@ function parseArgs(argv) {
         i++;
       }
     }
-    else if ((a === "init" || a === "doctor") && args.command === null) {
+    else if ((a === "init" || a === "doctor" || a === "detect") && args.command === null) {
       // Subcommand recognized regardless of whether --target has already been set
       args.command = a;
     }
@@ -96,11 +115,15 @@ function parseArgs(argv) {
   // A command is required whenever arguments are given. Bare invocation
   // (no args at all) falls through to help so `npx cursor-os` is read-only.
   if (args.command === null && !args.help && !args.version && !args.bare) {
-    args.errors.push("missing command: specify 'init' or 'doctor'");
+    args.errors.push("missing command: specify 'init', 'doctor' or 'detect'");
   }
 
-  if (args.command === "doctor" && args.dryRun) {
+  if (args.command !== "init" && args.dryRun) {
     args.errors.push("--dry-run is only valid with init");
+  }
+
+  if (args.command !== "detect" && formatSet) {
+    args.errors.push("--format is only valid with detect");
   }
 
   return args;
@@ -115,6 +138,7 @@ Usage:
 Commands:
   init      Install Cursor OS into the target directory
   doctor    Check whether Cursor OS is installed in the target directory
+  detect    Read project manifests and report stack signals (never writes)
 
 Arguments:
   target    Directory to operate on (default: current directory)
@@ -122,6 +146,7 @@ Arguments:
 Options:
   -n, --dry-run     Preview changes without writing anything (init only)
   -t, --target DIR  Use DIR as the target directory
+      --format TYPE Output text or json (detect only; default: text)
   -v, --version     Print version and exit
   -h, --help        Show this help
 
@@ -131,11 +156,13 @@ Examples:
   cursor-os init --target ./my-project
   cursor-os doctor
   cursor-os doctor --target ./my-project
+  cursor-os detect
+  cursor-os detect --target ./my-project --format json
 
 Notes:
   A command is required; bare invocation prints this help and writes nothing.
-  For a target directory named "init" or "doctor", or one starting with "-",
-  use the explicit form: init --target <dir>.
+  For a target directory named "init", "doctor" or "detect", or one starting with "-",
+  use the intended command with the explicit form: <command> --target <dir>.
   When running from a local checkout: node scripts/init.mjs <command>
 
 The installer copies AGENTS.md, .cursor/, docs/, and prompts/ into the target.
@@ -313,9 +340,23 @@ function runInit(args) {
   }
 
   if (health.todoCount > 0) {
+    const project = detect({ target: args.target });
+    const signals = [...project.frameworks, ...project.services, ...project.tooling].slice(0, 8);
+    if (signals.length > 0) {
+      console.log(`\nDetected project signals: ${signals.join(", ")}`);
+    }
     console.log(`\nNext: open Cursor in ${where} and run prompts/localize-cursor-os.md to adapt the OS to your project.`);
     console.log('Tip: with the Cursor CLI installed you can run it directly:');
     console.log('  cursor-agent -p "$(cat prompts/localize-cursor-os.md)"');
+  }
+}
+
+function runDetect(args) {
+  const result = detect({ target: args.target });
+  if (args.format === "json") {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    console.log(formatDetectionText(result));
   }
 }
 
@@ -385,6 +426,8 @@ function main() {
   try {
     if (args.command === "doctor") {
       runDoctor(args);
+    } else if (args.command === "detect") {
+      runDetect(args);
     } else {
       runInit(args);
     }

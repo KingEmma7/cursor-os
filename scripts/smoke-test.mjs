@@ -5,7 +5,7 @@
 // doctor passes on an installed dir, and doctor reports missing files otherwise.
 // Node built-ins only.
 
-import { install, doctor } from "./init.mjs";
+import { install, doctor, detect } from "./init.mjs";
 import {
   mkdtempSync,
   mkdirSync,
@@ -307,12 +307,100 @@ withTempDir((dir) => {
   );
 });
 
-// 9. CLI entry point coverage.
+// 9. detect — reports evidence-backed stack signals and never writes.
+console.log("\ndetect (project signals):");
+withTempDir((dir) => {
+  writeFileSync(
+    join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: "detected-app",
+        private: true,
+        packageManager: "pnpm@9.15.0",
+        workspaces: ["apps/*"],
+        scripts: {
+          build: "next build",
+          dev: "next dev",
+          test: "vitest run",
+        },
+        dependencies: {
+          "@supabase/supabase-js": "^2.0.0",
+          next: "^15.0.0",
+          react: "^19.0.0",
+        },
+        devDependencies: {
+          tailwindcss: "^4.0.0",
+          typescript: "^5.0.0",
+          vitest: "^3.0.0",
+        },
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+  writeFileSync(join(dir, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n", "utf8");
+  writeFileSync(join(dir, "tsconfig.json"), "{}\n", "utf8");
+  writeFileSync(join(dir, "vercel.json"), "{}\n", "utf8");
+  writeFileSync(join(dir, "turbo.json"), "{}\n", "utf8");
+  const before = listAll(dir);
+
+  const result = detect({ target: dir });
+  check("detect reads project name", result.project.name === "detected-app");
+  check("detect reads package manager", result.project.packageManager === "pnpm");
+  check("detect finds TypeScript", result.languages.includes("TypeScript"));
+  check("detect finds Next.js", result.frameworks.includes("Next.js"));
+  check("detect finds React", result.frameworks.includes("React"));
+  check("detect finds Supabase", result.services.includes("Supabase"));
+  check("detect finds Vercel", result.services.includes("Vercel"));
+  check("detect finds tooling", result.tooling.includes("Tailwind CSS") && result.tooling.includes("Vitest"));
+  check("detect identifies Turborepo tooling from its config", result.tooling.includes("Turborepo"));
+  check(
+    "detect emits stack presets",
+    ["nextjs", "supabase", "vercel"].every((preset) => result.presets.includes(preset)),
+  );
+  check("detect identifies a monorepo", result.workspace.monorepo === true);
+  check("detect preserves package scripts", result.packageScripts.test === "vitest run");
+  check("detect includes signal evidence", result.evidence.some((item) => item.source === "package.json:next"));
+  check("detect writes no files", JSON.stringify(listAll(dir)) === JSON.stringify(before));
+});
+
+console.log("\ndetect (task runner without workspace):");
+withTempDir((dir) => {
+  writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "single-package" }), "utf8");
+  writeFileSync(join(dir, "turbo.json"), "{}\n", "utf8");
+  writeFileSync(join(dir, "nx.json"), "{}\n", "utf8");
+
+  const result = detect({ target: dir });
+  check("task-runner configs do not imply a monorepo", result.workspace.monorepo === false);
+  check("task-runner configs are not workspace indicators", result.workspace.indicators.length === 0);
+  check(
+    "task-runner configs still identify tooling",
+    result.tooling.includes("Turborepo") && result.tooling.includes("Nx"),
+  );
+});
+
+console.log("\ndetect (malformed manifests):");
+withTempDir((dir) => {
+  writeFileSync(join(dir, "package.json"), "{not json", "utf8");
+  writeFileSync(join(dir, "package-lock.json"), "{}\n", "utf8");
+  writeFileSync(join(dir, "yarn.lock"), "# lock\n", "utf8");
+
+  const result = detect({ target: dir });
+  check("detect reports malformed package.json as a warning", result.warnings.some((warning) => warning.startsWith("package.json:")));
+  check("detect reports multiple lockfiles", result.warnings.some((warning) => warning.includes("multiple package-manager lockfiles")));
+  check("detect still identifies a package manager", result.project.packageManager === "yarn");
+});
+
+// 10. CLI entry point coverage.
 console.log("\nCLI:");
 withTempDir((dir) => {
   const help = runCli(["--help"]);
   check("--help exits 0", help.status === 0);
-  check("--help prints command list", help.stdout.includes("Commands:") && help.stdout.includes("doctor"));
+  check(
+    "--help prints command list",
+    help.stdout.includes("Commands:") && help.stdout.includes("doctor") && help.stdout.includes("detect"),
+  );
 
   const version = runCli(["--version"]);
   check("--version exits 0", version.status === 0);
@@ -334,6 +422,39 @@ withTempDir((dir) => {
   const doctorInstalled = runCli(["doctor", "--target", dir]);
   check("CLI doctor installed dir exits 0", doctorInstalled.status === 0);
   check("CLI doctor installed dir reports installed", doctorInstalled.stdout.includes("Cursor OS is installed"));
+});
+
+withTempDir((dir) => {
+  writeFileSync(
+    join(dir, "package.json"),
+    JSON.stringify({ name: "cli-detect", dependencies: { next: "^15.0.0" } }),
+    "utf8",
+  );
+  writeFileSync(join(dir, "vercel.json"), "{}\n", "utf8");
+  const before = listAll(dir);
+
+  const text = runCli(["detect", "--target", dir]);
+  check("CLI detect text exits 0", text.status === 0);
+  check("CLI detect text reports project", text.stdout.includes("Project: cli-detect"));
+  check("CLI detect text reports stack signals", text.stdout.includes("Next.js") && text.stdout.includes("Vercel"));
+
+  const json = runCli(["detect", "--target", dir, "--format", "json"]);
+  const parsed = json.status === 0 ? JSON.parse(json.stdout) : null;
+  check("CLI detect JSON exits 0", json.status === 0);
+  check("CLI detect JSON is parseable", parsed?.schemaVersion === 1);
+  check("CLI detect JSON includes evidence", parsed?.evidence?.length > 0);
+  check("CLI detect remains read-only", JSON.stringify(listAll(dir)) === JSON.stringify(before));
+});
+
+withTempDir((dir) => {
+  writeFileSync(
+    join(dir, "package.json"),
+    JSON.stringify({ dependencies: { next: "^15.0.0", "@supabase/supabase-js": "^2.0.0" } }),
+    "utf8",
+  );
+  const initDetected = runCli(["init", "--target", dir]);
+  check("CLI init with detectable project exits 0", initDetected.status === 0);
+  check("CLI init prints detected project signals", initDetected.stdout.includes("Detected project signals: Next.js, Supabase"));
 });
 
 withTempDir((dir) => {
@@ -413,6 +534,16 @@ withTempDir((dir) => {
   const dryRunDoctor = runCli(["doctor", "--dry-run"], { cwd: dir });
   check("CLI doctor --dry-run exits non-zero", dryRunDoctor.status === 1);
   check("CLI doctor --dry-run prints error", dryRunDoctor.stderr.includes("--dry-run is only valid with init"));
+});
+
+withTempDir((dir) => {
+  const invalidFormat = runCli(["detect", "--format", "yaml"], { cwd: dir });
+  check("CLI detect rejects unsupported format", invalidFormat.status === 1);
+  check("CLI detect unsupported format prints error", invalidFormat.stderr.includes("unsupported format: yaml"));
+
+  const dryRunDetect = runCli(["detect", "--dry-run"], { cwd: dir });
+  check("CLI detect --dry-run exits non-zero", dryRunDetect.status === 1);
+  check("CLI detect --dry-run prints error", dryRunDetect.stderr.includes("--dry-run is only valid with init"));
 });
 
 console.log(`\n${passed} checks passed, ${failures.length} failed.`);

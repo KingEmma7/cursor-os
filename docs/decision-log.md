@@ -2,6 +2,27 @@
 
 Append-only record of notable decisions for the Cursor OS project itself. Newest first. (Not part of the installable template — `template/docs/decision-log.md` is what gets installed into user projects.)
 
+## 2026-08-01 — Project detection is read-only, evidence-backed, and advisory
+
+- **Decision:** Add a `detect` command and programmatic API that inspect root manifests,
+  lockfiles, dependency names, and well-known config markers. It emits deterministic
+  text or versioned JSON, including evidence and warnings, but never writes a generated
+  profile into the project. Next.js, Supabase, and Vercel are emitted as localization
+  preset signals rather than stack-specific template files.
+- **Context:** The v0.2 workflow asks an agent to rediscover basic stack facts during
+  every localization. The roadmap called for project detection and presets, but the
+  base template must remain framework-neutral and the installer must not silently
+  rewrite user content.
+- **Alternatives:** Automatically localize files during `init` — rejected because it
+  spends tokens and produces unreviewed edits. Persist `.cursor/project-profile.json`
+  — rejected for now because generated state can become stale and would create another
+  overwrite exception. Recursively scan all source files — rejected because it is
+  slower, noisier, and unnecessary for the first evidence pass.
+- **Consequences:** Detection is safe to run at any time and straightforward to consume
+  in automation. Localization still verifies signals against source and remains an
+  explicit, reviewable step. Richer opt-in interactive localization can build on the
+  versioned report later.
+
 ## 2026-06-10 — v0.2.0 publishes manually; CI publishing with provenance deferred
 
 - **Decision:** The first npm release is published manually by the maintainer (`npm publish` from a tagged, CI-green commit). Automated publishing from GitHub Actions with npm provenance/trusted publishing is deferred.

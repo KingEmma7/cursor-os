@@ -16,6 +16,7 @@ jobs:
       - name: Syntax-check scripts
         run: |
           node --check scripts/init.mjs
+          node --check scripts/detect.mjs
           node --check scripts/smoke-test.mjs
       - name: Validate package.json parses
         run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"
@@ -31,10 +32,11 @@ jobs:
           npm install "$GITHUB_WORKSPACE"/cursor-os-*.tgz
           ./node_modules/.bin/cursor-os init --target ./proj
           ./node_modules/.bin/cursor-os doctor --target ./proj
+          ./node_modules/.bin/cursor-os detect --target ./proj --format json | grep -q '"schemaVersion": 1'
           # bare invocation must print help and write nothing
           ./node_modules/.bin/cursor-os | grep -q "Usage:"
           # programmatic import must resolve
-          node -e "import('cursor-os').then(m => { if (typeof m.install !== 'function') process.exit(1); }).catch(() => process.exit(1))"
+          node -e "import('cursor-os').then(m => { if (typeof m.install !== 'function' || typeof m.doctor !== 'function' || typeof m.detect !== 'function') process.exit(1); }).catch(() => process.exit(1))"
 
   smoke-test:
     strategy:

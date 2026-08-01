@@ -30,7 +30,7 @@ Report any other file you believe should change, but do not change it.
 
 ## Steps
 
-1. **Inspect.** Detect the language(s), framework(s), package manager, data layer, and deployment target from manifests and config (e.g. `package.json`, lockfiles, `pyproject.toml`, `go.mod`, Dockerfiles, CI). Read the README and any existing docs. Map the top-level directory structure and identify where the real logic lives.
+1. **Inspect.** If the Cursor OS CLI is available, first run `npx cursor-os detect --target . --format json` and use its evidence-backed signals as a starting point. Verify every signal against the actual manifests and config; detection is advisory and may be incomplete. Then inspect anything the detector does not cover (e.g. `pyproject.toml`, `go.mod`, Dockerfiles, CI, deployment config), read the README and existing docs, map the top-level structure, and identify where the real logic lives.
 
 2. **Extract the real commands.** Find the actual install / dev / test / lint / typecheck / build commands from scripts and CI. Use these verbatim — do not assume conventional names.
 

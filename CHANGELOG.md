@@ -6,7 +6,26 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-<!-- Add new changes here. -->
+### Added
+
+- Read-only `detect` command with deterministic text and versioned JSON output.
+- Evidence-backed detection for languages, JavaScript frameworks, package managers,
+  monorepo indicators, package scripts, common tooling, and Next.js/Supabase/Vercel
+  localization presets.
+- Programmatic `detect({ target })` export alongside `install` and `doctor`.
+- Post-install project-signal summary that grounds the localization next step without
+  modifying user files.
+- Detection warnings for malformed `package.json` and competing package-manager
+  lockfiles; neither condition prevents a partial report.
+- Smoke coverage for programmatic and CLI detection, JSON parsing, read-only behavior,
+  invalid formats, stack presets, malformed manifests, and post-install signals (155
+  checks total).
+
+### Changed
+
+- `prompts/localize-cursor-os.md` now consumes `cursor-os detect --format json` as an
+  optional evidence source, while requiring every signal to be verified against the
+  repository before localization edits.
 
 ## [0.2.0] — 2026-06-10
 

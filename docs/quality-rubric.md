@@ -28,8 +28,8 @@ Gate to check before claiming any change is done. All items must pass with evide
 
 ## Verification (project-specific)
 
-- [ ] `npm test` passes — `node scripts/smoke-test.mjs`, 126 checks minimum.
-- [ ] `node --check scripts/init.mjs && node --check scripts/smoke-test.mjs` clean.
+- [ ] `npm test` passes — `node scripts/smoke-test.mjs`, 155 checks minimum.
+- [ ] `node --check scripts/init.mjs && node --check scripts/detect.mjs && node --check scripts/smoke-test.mjs` clean.
 - [ ] `npm run pack:dry-run` exits 0 and file list matches `package.json#files`.
 - [ ] `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"` succeeds.
 - [ ] If `template/` files changed: `EXPECTED` in `smoke-test.mjs`, `README.md`, and `CHANGELOG.md` updated together.

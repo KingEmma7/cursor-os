@@ -41,9 +41,10 @@ Prompts live in `template/prompts/` and use descriptive command-style names (e.g
 ## Development
 
 ```bash
-npm test                          # run installer, doctor, and CLI smoke tests
+npm test                          # run installer, doctor, detector, and CLI smoke tests
 node scripts/init.mjs init --dry-run    # preview an install into the current dir
 node scripts/init.mjs doctor            # check install state of current dir
+node scripts/init.mjs detect --format json  # read-only project signals
 npm run pack:dry-run              # preview npm package contents
 ```
 
