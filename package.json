@@ -14,12 +14,13 @@
     "doctor": "node scripts/init.mjs doctor",
     "detect": "node scripts/init.mjs detect",
     "pack:dry-run": "npm pack --dry-run",
-    "test": "node scripts/smoke-test.mjs"
+    "test": "node scripts/smoke-test.mjs && node scripts/upgrade-smoke-test.mjs"
   },
   "files": [
     "template",
     "scripts/init.mjs",
     "scripts/detect.mjs",
+    "scripts/upgrade-smoke-test.mjs",
     "examples",
     "README.md",
     "LICENSE",
