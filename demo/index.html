@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cursor OS — dual-channel comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Cyanotype drafting sheet */
+  --c-sheet:#e4e8ed;
+  --c-sheet-2:#eef1f4;
+  --c-grid:rgba(31,66,110,.10);
+  --c-grid-major:rgba(31,66,110,.18);
+  --c-panel:#f7f9fa;
+  --c-ink:#14202e;
+  --c-ink-2:#3d5064;
+  --c-muted:#6d8095;
+  --c-rule:#b9c4d0;
+  --c-rule-soft:#d3dae2;
+  --c-blue:#1f5a96;
+  --c-blue-deep:#123a63;
+  --c-red:#a82b21;
+  --c-red-soft:rgba(168,43,33,.09);
+  --c-green:#186052;
+  --c-amber:#8a5a10;
+  --c-focus:#0f8fd8;
+
+  --f-disp:"Barlow Condensed","Oswald","Haettenschweiler","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+
+  --t-xs:11px;   --l-xs:1.45;
+  --t-sm:12.5px; --l-sm:1.55;
+  --t-base:14px; --l-base:1.62;
+  --t-lg:17px;   --l-lg:1.4;
+  --t-xl:24px;   --l-xl:1.15;
+  --t-2xl:40px;  --l-2xl:.95;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-6:24px; --s-8:36px;
+  --r-sm:0px; --r-md:0px; --r-lg:0px;
+  --sh-sm:0 1px 0 rgba(20,32,46,.10);
+  --sh-md:0 2px 0 rgba(20,32,46,.10), 0 10px 24px -14px rgba(18,58,99,.55);
+  --sh-lg:0 3px 0 rgba(20,32,46,.12), 0 26px 50px -26px rgba(18,58,99,.6);
+
+  --d-fast:130ms; --d-base:260ms; --d-slow:620ms;
+  --e-out:cubic-bezier(.2,.7,.3,1);
+  --e-spring:cubic-bezier(.2,1.3,.4,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--f-body);
+  font-size:var(--t-base);
+  line-height:var(--l-base);
+  color:var(--c-ink);
+  background:var(--c-sheet);
+  background-image:
+    linear-gradient(var(--c-grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--c-grid) 1px,transparent 1px),
+    linear-gradient(var(--c-grid-major) 1px,transparent 1px),
+    linear-gradient(90deg,var(--c-grid-major) 1px,transparent 1px);
+  background-size:16px 16px,16px 16px,96px 96px,96px 96px;
+  -webkit-font-smoothing:antialiased;
+  padding:var(--s-6) var(--s-6) var(--s-8);
+}
+body::after{ /* paper tooth */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+
+.wrap{max-width:1400px;margin:0 auto;position:relative}
+
+/* ── registration marks ───────────────────────────────────────────────── */
+.reg{position:absolute;width:22px;height:22px;pointer-events:none;color:var(--c-blue)}
+.reg::before,.reg::after{content:"";position:absolute;background:currentColor;opacity:.55}
+.reg::before{width:22px;height:1px;top:0;left:0}
+.reg::after{width:1px;height:22px;top:0;left:0}
+.reg.tl{top:-11px;left:-11px}
+.reg.tr{top:-11px;right:-11px;transform:scaleX(-1)}
+.reg.bl{bottom:-11px;left:-11px;transform:scaleY(-1)}
+.reg.br{bottom:-11px;right:-11px;transform:scale(-1)}
+
+/* ── masthead ─────────────────────────────────────────────────────────── */
+.masthead{
+  display:grid;grid-template-columns:1fr auto;gap:var(--s-6);
+  align-items:end;padding-bottom:var(--s-4);
+  border-bottom:2px solid var(--c-ink);margin-bottom:var(--s-2);
+}
+.eyebrow{
+  font-family:var(--f-mono);font-size:var(--t-xs);letter-spacing:.16em;
+  text-transform:uppercase;color:var(--c-blue);margin-bottom:var(--s-2);
+  display:flex;gap:var(--s-3);align-items:center;flex-wrap:wrap;
+}
+.eyebrow::before{content:"";width:28px;height:2px;background:var(--c-blue)}
+h1{
+  font-family:var(--f-disp);font-size:var(--t-2xl);line-height:var(--l-2xl);
+  font-weight:700;letter-spacing:.005em;text-transform:uppercase;
+}
+h1 em{font-style:normal;color:var(--c-blue)}
+.dek{
+  font-size:var(--t-sm);line-height:var(--l-sm);color:var(--c-ink-2);
+  max-width:56ch;margin-top:var(--s-2);
+}
+.brief{
+  font-family:var(--f-mono);font-size:var(--t-xs);line-height:1.7;
+  color:var(--c-ink-2);border-left:2px solid var(--c-blue);
+  padding-left:var(--s-3);min-width:250px;
+}
+.brief b{color:var(--c-ink);font-weight:600}
+
+/* ── control deck ─────────────────────────────────────────────────────── */
+.deck{
+  display:flex;flex-wrap:wrap;gap:var(--s-3);align-items:center;
+  padding:var(--s-3) 0;border-bottom:1px solid var(--c-rule);
+  margin-bottom:var(--s-4);
+}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.btn{
+  font-family:var(--f-mono);font-size:var(--t-xs);font-weight:500;
+  letter-spacing:.09em;text-transform:uppercase;
+  padding:9px 15px;min-height:38px;
+  border:1px solid var(--c-ink);background:var(--c-panel);color:var(--c-ink);
+  box-shadow:2px 2px 0 var(--c-ink);
+  transition:transform var(--d-fast) var(--e-out),box-shadow var(--d-fast) var(--e-out),background var(--d-fast) var(--e-out);
+  display:inline-flex;align-items:center;gap:7px;
+}
+.btn:hover{background:#fff;transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--c-ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--c-ink)}
+.btn:focus-visible{outline:2px solid var(--c-focus);outline-offset:3px}
+.btn[disabled]{opacity:.4;cursor:not-allowed;box-shadow:2px 2px 0 var(--c-rule);border-color:var(--c-rule)}
+.btn[disabled]:hover{transform:none;box-shadow:2px 2px 0 var(--c-rule);background:var(--c-panel)}
+.btn.primary{background:var(--c-blue);color:#fff;border-color:var(--c-blue-deep);box-shadow:2px 2px 0 var(--c-blue-deep)}
+.btn.primary:hover{background:var(--c-blue-deep)}
+.btn svg{width:12px;height:12px;flex:none}
+
+.seg{display:inline-flex;border:1px solid var(--c-ink);box-shadow:2px 2px 0 var(--c-ink);background:var(--c-panel)}
+.seg button{
+  font-family:var(--f-mono);font-size:var(--t-xs);letter-spacing:.06em;
+  padding:9px 12px;min-height:38px;border-right:1px solid var(--c-rule);
+  transition:background var(--d-fast) var(--e-out);
+}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:#fff}
+.seg button:focus-visible{outline:2px solid var(--c-focus);outline-offset:-2px;position:relative;z-index:1}
+.seg button[aria-pressed="true"]{background:var(--c-ink);color:var(--c-sheet-2)}
+.deck-label{
+  font-family:var(--f-mono);font-size:var(--t-xs);letter-spacing:.13em;
+  text-transform:uppercase;color:var(--c-muted);
+}
+.spacer{flex:1 1 auto;min-width:var(--s-2)}
+
+/* scrub track */
+.track{
+  flex:1 1 260px;min-width:200px;height:38px;position:relative;
+  display:flex;align-items:center;
+}
+.track input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:38px;background:none;cursor:pointer;
+}
+.track input[type=range]:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.track input[type=range]::-webkit-slider-runnable-track{height:6px;background:var(--c-rule-soft);border:1px solid var(--c-rule)}
+.track input[type=range]::-moz-range-track{height:6px;background:var(--c-rule-soft);border:1px solid var(--c-rule)}
+.track input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:20px;background:var(--c-blue);
+  border:1px solid var(--c-blue-deep);margin-top:-8px;
+}
+.track input[type=range]::-moz-range-thumb{width:12px;height:20px;background:var(--c-blue);border:1px solid var(--c-blue-deep);border-radius:0}
+.clock{font-family:var(--f-mono);font-size:var(--t-xs);color:var(--c-ink-2);min-width:74px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ── stage ────────────────────────────────────────────────────────────── */
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-6);align-items:start}
+
+.chan{position:relative;background:var(--c-panel);border:1px solid var(--c-ink);box-shadow:var(--sh-md);display:flex;flex-direction:column;min-height:0}
+.chan.b{box-shadow:var(--sh-lg)}
+.chan-hd{border-bottom:1px solid var(--c-ink);padding:var(--s-3) var(--s-4);display:flex;gap:var(--s-3);align-items:baseline;flex-wrap:wrap}
+.chan-id{
+  font-family:var(--f-mono);font-size:var(--t-xs);letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 7px;border:1px solid currentColor;
+}
+.chan.a .chan-id{color:var(--c-red)}
+.chan.b .chan-id{color:var(--c-green)}
+.chan-name{font-family:var(--f-disp);font-size:var(--t-lg);font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+.chan-note{font-family:var(--f-mono);font-size:var(--t-xs);color:var(--c-muted);width:100%}
+
+.ctx{
+  padding:var(--s-2) var(--s-4);border-bottom:1px dashed var(--c-rule);
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:34px;
+  background:linear-gradient(var(--c-sheet-2),var(--c-sheet-2));
+}
+.ctx-lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--c-muted);margin-right:2px}
+.chip{
+  font-family:var(--f-mono);font-size:10.5px;padding:2px 6px;border:1px solid var(--c-blue);
+  color:var(--c-blue-deep);background:rgba(31,90,150,.07);white-space:nowrap;
+  animation:pop var(--d-base) var(--e-spring) both;
+}
+.chip.none{border-color:var(--c-rule);color:var(--c-muted);background:none;font-style:italic}
+@keyframes pop{from{opacity:0;transform:translateY(4px) scale(.94)}to{opacity:1;transform:none}}
+
+.feed{
+  padding:var(--s-4);display:flex;flex-direction:column;gap:var(--s-3);
+  height:clamp(400px,58vh,620px);overflow:hidden;position:relative;
+  scroll-behavior:smooth;
+}
+.feed::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(transparent,var(--c-panel));pointer-events:none}
+
+.msg{animation:rise var(--d-base) var(--e-out) both}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.who{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c-muted);margin-bottom:5px;display:flex;gap:var(--s-2);align-items:center;
+}
+.who::after{content:"";flex:1;height:1px;background:var(--c-rule-soft)}
+.msg.you .who{color:var(--c-ink)}
+.bubble{font-size:var(--t-sm);line-height:var(--l-sm);color:var(--c-ink-2)}
+.msg.you .bubble{
+  color:var(--c-ink);font-weight:500;border-left:3px solid var(--c-ink);
+  padding-left:var(--s-3);
+}
+.bubble code{font-family:var(--f-mono);font-size:.92em;background:rgba(31,90,150,.09);padding:1px 4px;color:var(--c-blue-deep)}
+.bubble .cite{color:var(--c-green);font-weight:600}
+.bubble .bad{color:var(--c-red);font-weight:600}
+
+pre.code{
+  font-family:var(--f-mono);font-size:11.5px;line-height:1.6;
+  background:#101c29;color:#c9d8e6;padding:var(--s-3);margin-top:var(--s-2);
+  overflow:hidden;white-space:pre-wrap;word-break:break-word;
+  border-left:3px solid var(--c-blue);
+}
+.chan.a pre.code{border-left-color:var(--c-red)}
+pre.code .k{color:#7fb2e0}
+pre.code .s{color:#c2a36b}
+pre.code .c{color:#5d7488}
+pre.code .add{color:#7fc0a4}
+pre.code .del{color:#e08b82}
+
+/* redline markup for the failure annotations */
+.redline{
+  margin-top:var(--s-2);border-left:3px solid var(--c-red);
+  background:var(--c-red-soft);padding:7px var(--s-3) 7px var(--s-3);
+  font-size:11.5px;line-height:1.5;color:var(--c-red);
+  display:flex;gap:8px;align-items:flex-start;
+  animation:strike var(--d-slow) var(--e-out) both;
+}
+@keyframes strike{
+  from{opacity:0;transform:translateX(-8px) rotate(-.4deg)}
+  60%{opacity:1;transform:translateX(2px) rotate(.25deg)}
+  to{opacity:1;transform:none}
+}
+.redline b{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;flex:none;padding-top:1px}
+.verified{
+  margin-top:var(--s-2);border-left:3px solid var(--c-green);
+  background:rgba(24,96,82,.08);padding:7px var(--s-3);
+  font-family:var(--f-mono);font-size:11px;line-height:1.55;color:var(--c-green);
+  animation:rise var(--d-base) var(--e-out) both;
+}
+
+.caret{display:inline-block;width:7px;height:1.05em;background:var(--c-blue);
+  vertical-align:text-bottom;margin-left:2px;animation:blink 1s steps(2) infinite}
+.chan.a .caret{background:var(--c-red)}
+@keyframes blink{50%{opacity:0}}
+
+/* ── tally ────────────────────────────────────────────────────────────── */
+.tally{
+  margin-top:var(--s-6);border:1px solid var(--c-ink);background:var(--c-panel);
+  box-shadow:var(--sh-md);
+}
+.tally-hd{
+  display:flex;justify-content:space-between;align-items:baseline;gap:var(--s-4);
+  padding:var(--s-3) var(--s-4);border-bottom:1px solid var(--c-ink);flex-wrap:wrap;
+}
+.tally-hd h2{font-family:var(--f-disp);font-size:var(--t-xl);text-transform:uppercase;font-weight:700;letter-spacing:.02em}
+.tally-hd span{font-family:var(--f-mono);font-size:var(--t-xs);color:var(--c-muted);letter-spacing:.1em;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:var(--t-sm)}
+th,td{padding:11px var(--s-4);text-align:left;border-bottom:1px solid var(--c-rule-soft)}
+thead th{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--c-muted);font-weight:500;border-bottom:1px solid var(--c-rule);
+}
+tbody tr:last-child td{border-bottom:0}
+td.metric{font-weight:500;color:var(--c-ink);width:38%}
+td.a,td.b{font-family:var(--f-mono);font-size:var(--t-sm);font-variant-numeric:tabular-nums}
+td.a{color:var(--c-red)}
+td.b{color:var(--c-green)}
+th.a,th.b{width:31%}
+.val{transition:opacity var(--d-base) var(--e-out)}
+.val.pending{opacity:.25}
+
+.foot{
+  margin-top:var(--s-6);padding-top:var(--s-4);border-top:2px solid var(--c-ink);
+  display:grid;grid-template-columns:1fr auto;gap:var(--s-6);align-items:start;
+}
+.disclaimer{
+  font-size:var(--t-xs);line-height:1.65;color:var(--c-ink-2);max-width:74ch;
+  border-left:2px solid var(--c-amber);padding-left:var(--s-3);
+}
+.disclaimer b{color:var(--c-amber);font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:3px}
+.install{border:1px solid var(--c-ink);padding:var(--s-3) var(--s-4);background:var(--c-panel);box-shadow:var(--sh-sm)}
+.install-lbl{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--c-muted);margin-bottom:var(--s-2);
+}
+.install code{
+  font-family:var(--f-mono);font-size:14px;color:var(--c-ink);
+  background:var(--c-sheet-2);border:1px dashed var(--c-rule);padding:7px 11px;
+  display:inline-block;vertical-align:middle;margin-right:var(--s-2);user-select:all;
+}
+.install .btn{padding:8px 13px;min-height:36px;vertical-align:middle}
+.install-links{
+  font-family:var(--f-mono);font-size:10.5px;color:var(--c-muted);margin-top:var(--s-3);
+}
+.install-links a{color:var(--c-blue);text-decoration:none;border-bottom:1px solid currentColor}
+.install-links a:hover{color:var(--c-blue-deep)}
+.install-links a:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+
+/* capture mode hides the controls for screen recording */
+body.capture .masthead .dek,body.capture .deck,body.capture .foot{display:none}
+body.capture{padding-top:var(--s-4)}
+body.capture .exit-capture{display:inline-flex}
+.exit-capture{
+  display:none;position:fixed;right:14px;bottom:14px;z-index:120;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 11px;border:1px solid var(--c-rule);background:var(--c-panel);color:var(--c-muted);
+  opacity:.28;transition:opacity var(--d-fast) var(--e-out);
+}
+.exit-capture:hover,.exit-capture:focus-visible{opacity:1;color:var(--c-ink);border-color:var(--c-ink)}
+.exit-capture:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:1000px){
+  .stage{grid-template-columns:1fr}
+  .feed{height:auto;max-height:440px}
+  .masthead{grid-template-columns:1fr}
+  h1{font-size:32px}
+  .foot{grid-template-columns:1fr}
+  .titleblock{text-align:left}
+}
+@media (max-width:620px){
+  body{padding:var(--s-3)}
+  h1{font-size:26px}
+  .deck{gap:var(--s-2)}
+  .track{flex-basis:100%;order:9}
+  th,td{padding:9px var(--s-3)}
+  td.metric{width:44%}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .feed{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span>
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Dual-channel comparison · Sheet 01</p>
+      <h1>The same request,<br>with and without <em>Cursor&nbsp;OS</em></h1>
+      <p class="dek">Two sessions against the same Next.js&nbsp;+&nbsp;Supabase codebase, given the same request. Channel&nbsp;A has no project context. Channel&nbsp;B has the installed and localized engineering contract. The difference is what the model has to guess at.</p>
+    </div>
+    <div class="brief">
+      <b>REPO</b> orbit — team analytics SaaS<br>
+      <b>STACK</b> Next.js 15 · App Router<br>
+      <b>DATA</b> Supabase · RLS enforced<br>
+      <b>UI</b> Tailwind · shadcn/ui · sonner<br>
+      <b>TESTS</b> Vitest · Playwright<br>
+      <b>TASK</b> Add a team-invite flow
+    </div>
+  </header>
+
+  <div class="deck" role="group" aria-label="Playback controls">
+    <button class="btn primary" id="play" aria-label="Play the comparison">
+      <svg viewBox="0 0 12 12" aria-hidden="true" id="playIcon"><path d="M2 1l8 5-8 5z" fill="currentColor"/></svg>
+      <span id="playLabel">Play</span>
+    </button>
+    <button class="btn" id="restart">
+      <svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M10 6a4 4 0 1 1-1.4-3"/><path d="M10.5 1.5V4H8"/></svg>
+      Restart
+    </button>
+    <span class="deck-label" id="speedLabel">Speed</span>
+    <div class="seg" role="group" aria-labelledby="speedLabel">
+      <button data-rate="0.75" aria-pressed="false">0.75×</button>
+      <button data-rate="1" aria-pressed="true">1×</button>
+      <button data-rate="1.5" aria-pressed="false">1.5×</button>
+      <button data-rate="2.5" aria-pressed="false">2.5×</button>
+    </div>
+    <div class="track">
+      <label class="sr" for="scrub">Scrub through the comparison</label>
+      <input type="range" id="scrub" min="0" max="1000" value="0" step="1">
+    </div>
+    <span class="clock" id="clock" aria-live="off">0:00 / 0:00</span>
+    <span class="spacer"></span>
+    <button class="btn" id="capture">Clean capture</button>
+  </div>
+
+  <main class="stage">
+    <section class="chan a" aria-labelledby="chA">
+      <div class="chan-hd">
+        <span class="chan-id">CH A</span>
+        <span class="chan-name" id="chA">Without Cursor OS</span>
+        <span class="chan-note">Cold session · context limited to open files</span>
+      </div>
+      <div class="ctx" id="ctxA"><span class="ctx-lbl">Loaded context</span></div>
+      <div class="feed" id="feedA" role="log" aria-label="Channel A transcript"></div>
+    </section>
+
+    <section class="chan b" aria-labelledby="chB">
+      <div class="chan-hd">
+        <span class="chan-id">CH B</span>
+        <span class="chan-name" id="chB">With Cursor OS</span>
+        <span class="chan-note">Installed and localized · contract loads automatically</span>
+      </div>
+      <div class="ctx" id="ctxB"><span class="ctx-lbl">Loaded context</span></div>
+      <div class="feed" id="feedB" role="log" aria-label="Channel B transcript"></div>
+    </section>
+  </main>
+
+  <section class="tally" aria-labelledby="tallyH">
+    <div class="tally-hd">
+      <h2 id="tallyH">Where the time went</h2>
+      <span id="tallyState">Tallying — press play</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th scope="col">Measure</th><th scope="col" class="a">CH A — without</th><th scope="col" class="b">CH B — with</th></tr>
+      </thead>
+      <tbody id="tallyBody"></tbody>
+    </table>
+  </section>
+
+  <footer class="foot">
+    <p class="disclaimer">
+      <b>About this comparison</b>
+      The transcripts are written, not recorded. Channel A reproduces the failures Cursor OS is designed to prevent: the wrong router, a client constructed outside the session layer, a duplicate toast library, a table shipped without a row-level security policy, and "should work" standing in for verification. Each is a pattern that occurs when a model works without project context, but the counts shown here are illustrative rather than measured.
+    </p>
+    <div class="install">
+      <p class="install-lbl">Install it in your own repo</p>
+      <code id="cmd">npx cursor-os init</code>
+      <button class="btn" id="copy" aria-live="polite">Copy</button>
+      <p class="install-links">
+        <a href="https://github.com/KingEmma7/cursor-os">Source &amp; docs</a> ·
+        <a href="https://www.npmjs.com/package/cursor-os">npm</a> ·
+        Requires Node 20+
+      </p>
+    </div>
+  </footer>
+</div>
+
+<button class="exit-capture" id="exitCapture">Exit capture</button>
+
+<script>
+(() => {
+"use strict";
+
+const $ = s => document.querySelector(s);
+const feedA = $("#feedA"), feedB = $("#feedB");
+const ctxA = $("#ctxA"), ctxB = $("#ctxB");
+
+/* ── script ───────────────────────────────────────────────────────────────
+   Each beat: side a|b|both, who, html, kind, type (ms of typing), hold (ms
+   after). Beats run on one shared clock so the two channels stay in step. */
+
+const B = [
+  {side:"both", who:"You", kind:"you", type:900, hold:700,
+   html:"Add a team-invite flow: invite a teammate by email, they get a link, joining puts them on the team."},
+
+  // ── opening move
+  {side:"a", who:"Agent", kind:"msg", type:2100, hold:200,
+   html:"I'll build that. I'll add an API route to send the invite and a form component to call it."},
+  {side:"b", who:"Agent", kind:"msg", type:2600, hold:200,
+   html:"Reading <span class='cite'>AGENTS.md</span> and <span class='cite'>docs/repo-memory.md</span> first. This repo uses the App Router with server actions in <code>app/**/actions.ts</code> — no API routes for mutations. All Supabase access goes through <code>lib/supabase/server.ts</code>. Every new table needs an RLS policy in the same migration."},
+
+  // ── the router mistake
+  {side:"a", who:"Agent", kind:"code", type:1800, hold:250,
+   html:"<span class='c'>// pages/api/invite.ts</span>\n<span class='k'>export default async function</span> handler(req, res) {\n  <span class='k'>const</span> { email } = req.body;\n  <span class='c'>// ...</span>\n}"},
+  {side:"a", who:"You", kind:"you", type:700, hold:180,
+   html:"We're on App Router. There's no <code>pages/</code> directory."},
+  {side:"a", kind:"redline", label:"Correction 1", hold:420,
+   html:"Invented a Pages Router that this repo removed 14 months ago."},
+
+  {side:"b", who:"Agent", kind:"code", type:2000, hold:300,
+   html:"<span class='c'>// app/(app)/team/actions.ts</span>\n<span class='s'>\"use server\"</span>;\n<span class='k'>import</span> { createClient } <span class='k'>from</span> <span class='s'>\"@/lib/supabase/server\"</span>;\n<span class='k'>import</span> { inviteSchema } <span class='k'>from</span> <span class='s'>\"@/lib/schemas/team\"</span>;\n\n<span class='k'>export async function</span> inviteMember(formData: FormData) {\n  <span class='k'>const</span> parsed = inviteSchema.<span class='add'>safeParse</span>(...);\n}"},
+  {side:"b", kind:"verified", hold:380,
+   html:"Matched to repo conventions: server action · shared client factory · existing zod schema"},
+
+  // ── the client-construction mistake
+  {side:"a", who:"Agent", kind:"code", type:1900, hold:250,
+   html:"<span class='c'>// components/InviteForm.tsx</span>\n<span class='s'>\"use client\"</span>;\n<span class='k'>import</span> { createClient } <span class='k'>from</span> <span class='s'>\"@supabase/supabase-js\"</span>;\n\n<span class='k'>const</span> supabase = <span class='del'>createClient</span>(URL, ANON_KEY);"},
+  {side:"a", who:"You", kind:"you", type:900, hold:180,
+   html:"No. Never construct a client inline — use the factory in <code>lib/supabase/server.ts</code>. That one skips our session handling entirely."},
+  {side:"a", kind:"redline", label:"Correction 2", hold:420,
+   html:"Bypassed the <code>@supabase/ssr</code> session layer. Would have shipped an unauthenticated write path."},
+
+  {side:"b", who:"Agent", kind:"msg", type:2200, hold:280,
+   html:"Migration added alongside it — <span class='cite'>repo-memory</span> records that a table without a policy fails the CI gate:"},
+  {side:"b", who:"Agent", kind:"code", type:1700, hold:320,
+   html:"<span class='c'>-- supabase/migrations/20260806_invitations.sql</span>\n<span class='k'>create table</span> invitations (...);\n<span class='k'>alter table</span> invitations <span class='k'>enable row level security</span>;\n<span class='add'>create policy</span> <span class='s'>\"members read own team invites\"</span>\n  <span class='k'>on</span> invitations <span class='k'>for select</span> <span class='k'>using</span> (team_id = auth_team_id());"},
+
+  // ── dependency sprawl
+  {side:"a", who:"Agent", kind:"msg", type:1500, hold:200,
+   html:"Adding <code>react-hot-toast</code> for the success notification and installing it now."},
+  {side:"a", who:"You", kind:"you", type:700, hold:180,
+   html:"We already use <code>sonner</code>. Don't add a second toast library."},
+  {side:"a", kind:"redline", label:"Correction 3", hold:400,
+   html:"Second toast library. Two notification systems in one app is how design systems rot."},
+
+  {side:"b", who:"Agent", kind:"msg", type:1900, hold:300,
+   html:"Form wired with <code>react-hook-form</code> + the existing zod schema, success toast through <code>sonner</code>, error state rendered by the shared <code>&lt;FormError&gt;</code>. No new dependencies."},
+
+  // ── the security gap
+  {side:"a", who:"You", kind:"you", type:800, hold:180,
+   html:"Did you add an RLS policy for the invitations table?"},
+  {side:"a", who:"Agent", kind:"msg", type:1200, hold:150,
+   html:"I did not. I'll add one now."},
+  {side:"a", kind:"redline", label:"Correction 4", hold:420,
+   html:"Table created with RLS off. Any authenticated user could read every team's invites."},
+
+  {side:"b", who:"Agent", kind:"msg", type:1600, hold:250,
+   html:"Running the project's own checks before I claim anything:"},
+  {side:"b", who:"Agent", kind:"code", type:2000, hold:300,
+   html:"$ pnpm typecheck   <span class='add'>✓ 0 errors</span>\n$ pnpm lint        <span class='add'>✓ clean</span>\n$ pnpm test invite <span class='add'>✓ 6 passed</span>\n$ pnpm e2e:invite  <span class='add'>✓ 2 passed</span>"},
+
+  // ── the verification gap
+  {side:"a", who:"Agent", kind:"msg", type:1400, hold:200,
+   html:"Done — the invite flow is implemented and should work."},
+  {side:"a", who:"You", kind:"you", type:600, hold:170,
+   html:"Did you run the tests?"},
+  {side:"a", who:"Agent", kind:"msg", type:1100, hold:150,
+   html:"I did not run them. Let me do that."},
+  {side:"a", kind:"redline", label:"Correction 5", hold:400,
+   html:"Claimed completion without executing a single check."},
+
+  {side:"b", who:"Agent", kind:"msg", type:2400, hold:300,
+   html:"<b>Changed:</b> server action, invite form, migration with RLS, 6 unit + 2 e2e tests.<br><b>Verified:</b> typecheck, lint, unit, e2e — commands and output above.<br><b>Risk:</b> invite tokens don't expire yet; I've noted it rather than guessing at a TTL.<br>Appended the token-expiry question to <span class='cite'>docs/decision-log.md</span>."},
+
+  // ── the schema drift
+  {side:"a", who:"Agent", kind:"msg", type:1500, hold:200,
+   html:"Tests fail — <code>teams.owner_id</code> doesn't exist. I assumed the column name."},
+  {side:"a", who:"You", kind:"you", type:700, hold:180,
+   html:"It's <code>owner_user_id</code>. It's in the schema file."},
+  {side:"a", kind:"redline", label:"Correction 6", hold:500,
+   html:"Guessed a column name instead of reading the schema that was in the repo the whole time."},
+
+  {side:"b", who:"You", kind:"you", type:700, hold:1200,
+   html:"Ship it."},
+];
+
+/* Context chips appear as the session opens. */
+const CHIPS = {
+  a:[{t:220,label:"the 2 files you had open"},{t:520,label:"no project memory",none:true}],
+  b:[{t:220,label:"AGENTS.md"},{t:400,label:".cursor/rules/core.mdc"},{t:580,label:"docs/repo-memory.md"},
+     {t:760,label:"docs/decision-log.md"},{t:940,label:"docs/quality-rubric.md"}]
+};
+
+const TALLY = [
+  {m:"Turns to working code",           a:"11",           b:"3"},
+  {m:"Corrections you had to make",     a:"6",            b:"0"},
+  {m:"Repo conventions missed",         a:"5",            b:"0"},
+  {m:"Dependencies added unnecessarily",a:"1",            b:"0"},
+  {m:"Security gaps introduced",        a:"2",            b:"0"},
+  {m:"Checks actually executed",        a:"none, until asked", b:"typecheck · lint · unit · e2e"},
+  {m:"Project memory updated",          a:"no",           b:"decision-log entry"},
+];
+
+/* ── timeline construction ───────────────────────────────────────────── */
+const GAP = 260;
+let t = 900;
+const beats = B.map(b => {
+  const dur = (b.type || 420) + (b.hold || 0);
+  const beat = {...b, start:t, typeMs:b.type || 420, end:t + dur};
+  t += dur + GAP;
+  return beat;
+});
+const TOTAL = t + 900;
+
+/* ── state ──────────────────────────────────────────────────────────── */
+let elapsed = 0, playing = false, rate = 1, last = 0, rendered = -1;
+const reduce = typeof matchMedia === "function"
+  && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const playBtn = $("#play"), playLabel = $("#playLabel"), playIcon = $("#playIcon");
+const scrub = $("#scrub"), clock = $("#clock"), tallyState = $("#tallyState");
+const ICON_PLAY = '<path d="M2 1l8 5-8 5z" fill="currentColor"/>';
+const ICON_PAUSE = '<path d="M2.5 1h2.5v10H2.5zM7 1h2.5v10H7z" fill="currentColor"/>';
+
+const fmt = ms => {
+  const s = Math.max(0, Math.round(ms/1000));
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+};
+
+/* ── rendering ──────────────────────────────────────────────────────── */
+function feedOf(side){ return side === "a" ? feedA : feedB; }
+
+function buildBeat(beat, i){
+  const el = document.createElement("div");
+  if (beat.kind === "redline"){
+    el.className = "redline";
+    el.innerHTML = `<b>${beat.label}</b><span>${beat.html}</span>`;
+    return el;
+  }
+  if (beat.kind === "verified"){
+    el.className = "verified";
+    el.textContent = beat.html;
+    return el;
+  }
+  el.className = "msg " + (beat.kind === "you" ? "you" : "agent");
+  const who = document.createElement("p");
+  who.className = "who";
+  who.innerHTML = `<span>${beat.who}</span>`;
+  el.appendChild(who);
+  const body = document.createElement(beat.kind === "code" ? "pre" : "div");
+  body.className = beat.kind === "code" ? "code" : "bubble";
+  body.dataset.full = beat.html;
+  body.dataset.beat = i;
+  el.appendChild(body);
+  return el;
+}
+
+/* Reveal HTML progressively without ever splitting a tag. */
+function partialHTML(html, frac){
+  if (frac >= 1) return html;
+  const target = Math.floor(html.replace(/<[^>]*>/g, "").length * frac);
+  let out = "", shown = 0, i = 0;
+  while (i < html.length && shown < target){
+    if (html[i] === "<"){
+      const close = html.indexOf(">", i);
+      if (close === -1) break;
+      out += html.slice(i, close + 1);
+      i = close + 1;
+    } else {
+      out += html[i]; i++; shown++;
+    }
+  }
+  // close any tags we opened
+  const opened = [...out.matchAll(/<(\w+)[^>]*>/g)].map(m => m[1]);
+  const closed = [...out.matchAll(/<\/(\w+)>/g)].map(m => m[1]);
+  for (const tag of opened.reverse()){
+    const at = closed.indexOf(tag);
+    if (at === -1) out += `</${tag}>`; else closed.splice(at, 1);
+  }
+  return out + '<span class="caret"></span>';
+}
+
+function renderChips(){
+  for (const side of ["a","b"]){
+    const host = side === "a" ? ctxA : ctxB;
+    const want = CHIPS[side].filter(c => elapsed >= c.t);
+    const have = host.querySelectorAll(".chip").length;
+    if (want.length === have) continue;
+    host.querySelectorAll(".chip").forEach(n => n.remove());
+    for (const c of want){
+      const s = document.createElement("span");
+      s.className = "chip" + (c.none ? " none" : "");
+      s.textContent = c.label;
+      host.appendChild(s);
+    }
+  }
+}
+
+const typing = new Map(); // beat index -> [nodes still being revealed]
+
+function mountBeat(i){
+  const beat = beats[i];
+  const sides = beat.side === "both" ? ["a","b"] : [beat.side];
+  const nodes = [];
+  sides.forEach(s => {
+    const el = buildBeat(beat, i);
+    feedOf(s).appendChild(el);
+    const body = el.querySelector("[data-beat]");
+    if (body) nodes.push(body);
+  });
+  if (nodes.length) typing.set(i, nodes);
+}
+
+function render(){
+  const active = beats.filter(b => elapsed >= b.start).length;
+
+  if (active < rendered || rendered === -1){
+    // scrubbed backwards (or first paint): rebuild from scratch
+    feedA.replaceChildren(); feedB.replaceChildren(); typing.clear();
+    for (let i = 0; i < active; i++) mountBeat(i);
+  } else if (active > rendered){
+    // forward playback: append only what's new, so earlier messages
+    // keep their settled state instead of re-running their entrance
+    for (let i = rendered; i < active; i++) mountBeat(i);
+  }
+  rendered = active;
+
+  // progressive reveal, only for beats still mid-type
+  for (const [i, nodes] of typing){
+    const beat = beats[i];
+    const frac = reduce ? 1 : Math.min(1, (elapsed - beat.start) / beat.typeMs);
+    const next = partialHTML(beat.html, frac);
+    for (const node of nodes) if (node.innerHTML !== next) node.innerHTML = next;
+    if (frac >= 1) typing.delete(i);
+  }
+
+  feedA.scrollTop = feedA.scrollHeight;
+  feedB.scrollTop = feedB.scrollHeight;
+
+  renderChips();
+
+  const done = elapsed >= TOTAL - 900;
+  document.querySelectorAll(".val").forEach(n => n.classList.toggle("pending", !done));
+  tallyState.textContent = done ? "Complete — one request, two sessions" : "Tallying…";
+
+  scrub.value = Math.round((elapsed / TOTAL) * 1000);
+  scrub.setAttribute("aria-valuetext", `${fmt(elapsed)} of ${fmt(TOTAL)}`);
+  clock.textContent = `${fmt(elapsed)} / ${fmt(TOTAL)}`;
+}
+
+/* ── clock ──────────────────────────────────────────────────────────── */
+function tick(now){
+  if (!playing) return;
+  if (!last) last = now;
+  elapsed = Math.min(TOTAL, elapsed + (now - last) * rate);
+  last = now;
+  render();
+  if (elapsed >= TOTAL){ setPlaying(false); return; }
+  requestAnimationFrame(tick);
+}
+
+function setPlaying(v){
+  playing = v; last = 0;
+  playLabel.textContent = v ? "Pause" : (elapsed >= TOTAL ? "Replay" : "Play");
+  playIcon.innerHTML = v ? ICON_PAUSE : ICON_PLAY;
+  playBtn.setAttribute("aria-label", v ? "Pause the comparison" : "Play the comparison");
+  if (v) requestAnimationFrame(tick);
+}
+
+playBtn.addEventListener("click", () => {
+  if (elapsed >= TOTAL) elapsed = 0;
+  setPlaying(!playing);
+});
+$("#restart").addEventListener("click", () => {
+  elapsed = 0; rendered = -1; render(); setPlaying(true);
+});
+scrub.addEventListener("input", () => {
+  elapsed = (scrub.value / 1000) * TOTAL; rendered = -1; render();
+});
+document.querySelectorAll("[data-rate]").forEach(b => {
+  b.addEventListener("click", () => {
+    rate = parseFloat(b.dataset.rate);
+    document.querySelectorAll("[data-rate]").forEach(o =>
+      o.setAttribute("aria-pressed", String(o === b)));
+  });
+});
+const toggleCapture = () => {
+  document.body.classList.toggle("capture");
+  $("#capture").setAttribute("aria-pressed", document.body.classList.contains("capture"));
+};
+$("#capture").addEventListener("click", toggleCapture);
+$("#exitCapture").addEventListener("click", toggleCapture);
+
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input,button") && e.key !== " ") return;
+  if (e.key === " "){ e.preventDefault(); playBtn.click(); }
+  if (e.key === "ArrowRight"){ elapsed = Math.min(TOTAL, elapsed + 3000); rendered = -1; render(); }
+  if (e.key === "ArrowLeft"){ elapsed = Math.max(0, elapsed - 3000); rendered = -1; render(); }
+  if (e.key === "Escape" && document.body.classList.contains("capture")) toggleCapture();
+});
+
+/* ── copy the install command ───────────────────────────────────────── */
+const copyBtn = $("#copy");
+copyBtn.addEventListener("click", async () => {
+  const cmd = $("#cmd").textContent;
+  try {
+    await navigator.clipboard.writeText(cmd);
+    copyBtn.textContent = "Copied";
+  } catch {
+    // clipboard blocked (insecure context, denied permission) — select instead
+    const r = document.createRange();
+    r.selectNodeContents($("#cmd"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    copyBtn.textContent = "Press ⌘C";
+  }
+  setTimeout(() => { copyBtn.textContent = "Copy"; }, 2200);
+});
+
+/* ── tally table ────────────────────────────────────────────────────── */
+$("#tallyBody").innerHTML = TALLY.map(r => `
+  <tr>
+    <td class="metric">${r.m}</td>
+    <td class="a"><span class="val pending">${r.a}</span></td>
+    <td class="b"><span class="val pending">${r.b}</span></td>
+  </tr>`).join("");
+
+render();
+})();
+</script>
+</body>
+</html>

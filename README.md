@@ -1,12 +1,135 @@
+<div align="center">
+
 # Cursor OS
 
-An installable operating layer that makes Cursor project-aware.
+**An installable operating layer that makes Cursor project-aware.**
+
+<img src="demo/hero.svg" alt="Two side-by-side transcripts of the same feature request. Without Cursor OS, the model guesses at the project's router, data-access, and dependency conventions and claims completion without running checks. With Cursor OS, it reads the engineering contract first and reports verified command output." width="100%">
+
+[Interactive demo](https://kingemma7.github.io/cursor-os/) · [Quick start](#quick-start) · [How it works](#how-cursor-os-works) · [CLI reference](#cli-reference)
 
 [![CI](https://github.com/KingEmma7/cursor-os/actions/workflows/ci.yml/badge.svg)](https://github.com/KingEmma7/cursor-os/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/github/package-json/v/KingEmma7/cursor-os)](package.json)
+[![npm](https://img.shields.io/npm/v/cursor-os)](https://www.npmjs.com/package/cursor-os)
+[![node](https://img.shields.io/node/v/cursor-os)](package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+</div>
+
+> The comparison above is illustrative. Each failure it shows is a pattern that occurs when a model works without project context, but the transcript is written, not recorded, and the counts are not measured.
+
 > **Unofficial project.** Cursor OS is a community-maintained installable layer for Cursor. It is not affiliated with, endorsed by, or maintained by Cursor or Anysphere.
+
+---
+
+## Quick start
+
+Three commands and one paste.
+
+### 1. Install
+
+Run this from the root of the repository you want Cursor to understand. It works on a new
+project or a mature codebase; the installer skips any file that already exists.
+
+```bash
+cd /path/to/your-project
+npx cursor-os init
+```
+
+Nothing is installed globally and no dependencies are added to your project. To preview the
+file list without writing anything, add `--dry-run`.
+
+```
+Cursor OS v0.3.0
+Target: /path/to/your-project
+
+Created 20 file(s):
+  + .cursor/agents/verifier.md
+  + .cursor/rules/core.mdc
+  ...
+  + AGENTS.md
+  + docs/repo-memory.md
+  + prompts/localize-cursor-os.md
+
+Post-install check:
+  All files installed. 14 placeholder(s) await localization.
+
+Next: open Cursor in your-project and run prompts/localize-cursor-os.md
+```
+
+### 2. Review what the installer detected
+
+Optional. This reads your root manifests and reports the stack it can evidence, without
+modifying anything.
+
+```bash
+npx cursor-os detect
+```
+
+The JSON form feeds the localization step in the next section.
+
+```bash
+npx cursor-os detect --format json
+```
+
+### 3. Localize it
+
+The installed files describe the shape of a project, not yours. Localization is what makes
+them specific, and it runs once.
+
+Open your repository in Cursor, start an Agent chat, and paste the contents of
+`prompts/localize-cursor-os.md`.
+
+```bash
+pbcopy < prompts/localize-cursor-os.md   # macOS
+```
+
+Cursor reads the codebase and fills in the real stack, commands, architecture, and
+conventions. It deletes the rules that do not apply, and leaves a `TODO` wherever the
+repository does not answer the question rather than guessing.
+
+With the Cursor CLI installed, this replaces the copy and paste:
+
+```bash
+cursor-agent -p "$(cat prompts/localize-cursor-os.md)"
+```
+
+### 4. Verify
+
+```bash
+npx cursor-os doctor
+```
+
+`Cursor OS appears installed and localized.` confirms the setup. From that point Cursor
+loads `AGENTS.md` and your project memory on every request.
+
+### 5. Use the workflow prompts
+
+These are not loaded automatically. Paste one into chat when you want that workflow.
+
+| Prompt | When |
+| --- | --- |
+| `prompts/plan-feature.md` | Before writing code for a non-trivial feature |
+| `prompts/implement-change.md` | When executing an agreed plan |
+| `prompts/debug-regression.md` | When something is broken and the cause is unknown |
+| `prompts/verify-work.md` | After a change is claimed complete |
+| `prompts/review-pr.md` | Before merging |
+| `prompts/update-repo-memory.md` | After a significant structural change |
+
+### Upgrading
+
+```bash
+npx cursor-os init --update --dry-run   # preview
+npx cursor-os init --update
+```
+
+`--update` refreshes only the files that still match what the previous install wrote.
+Anything you or localization edited is reported as customized and left in place.
+
+### Requirements
+
+Node.js 20 or newer. Cursor OS has no runtime dependencies.
+
+---
 
 ## The problem
 
@@ -56,39 +179,30 @@ It reports languages, frameworks, services, tooling, package scripts, workspace 
 and applicable localization presets. It never edits the project, and its output is
 guidance—not a replacement for inspecting the actual code.
 
-## The two-step setup
+## Why localization is the step that matters
 
-**Step 1 — Install the base OS** (the installer does this):
+Installing gives you the structure. The files still contain `TODO` placeholders, so Cursor
+reads them but learns nothing specific about your project.
 
-```bash
-cd /path/to/your-project
-npx cursor-os init
-```
+Localization is what changes that. Cursor inspects the repository, replaces the
+placeholders with facts it can verify from your code and configuration, tunes or deletes
+the rules that do not fit, and creates `docs/architecture.md` where the project warrants
+it. [`examples/localization-example.md`](examples/localization-example.md) walks through a
+concrete before and after.
 
-This gives you the structure. The files contain TODO placeholders — Cursor knows to use them, but they don't yet describe your project.
-
-**Step 2 — Localize it** (you do this once in Cursor):
-
-Open Cursor in your project. Paste the contents of `prompts/localize-cursor-os.md` into the chat and send it.
-
-Cursor will inspect your repo, fill in the TODO markers with real facts (stack, commands, architecture, conventions), tune or remove irrelevant rules, and optionally create `docs/architecture.md` if the project warrants it. See [`examples/localization-example.md`](examples/localization-example.md) for a concrete before/after walkthrough.
-
-After localization, Cursor works with your project's actual context instead of guessing.
+An unlocalized install provides very little. It is not an optional step.
 
 ## Designed for existing projects
 
 Cursor OS is designed to drop into any project at any stage — greenfield or mature codebase. The installer never overwrites existing files; it skips them and reports.
 
-```bash
-# From the root of any existing project
-npx cursor-os init
+### Upgrading an existing install
 
-# Preview what would be installed first
-npx cursor-os init --dry-run
-
-# Check if Cursor OS is already installed
-npx cursor-os doctor
-```
+`init` never overwrites a file you have edited. To make that a guarantee rather than a
+heuristic, each install records a SHA-256 per file in `.cursor/.cursor-os-manifest.json`.
+`init --update` refreshes a file only when its current contents still match what the
+previous install wrote. Anything you or localization changed is reported as customized and
+left in place for you to merge. Commit the manifest so the whole team upgrades identically.
 
 For new repos, create your project normally first, then run the installer from the project root. This repository's root is the Cursor OS source project, not the installed project layout.
 
@@ -113,19 +227,23 @@ Example output:
 Cursor OS vX.Y.Z — doctor
 Target: /path/to/your-project
 
-  ok   .cursor/agents/verifier.md
-  ok   .cursor/rules/core.mdc
-  ok   .cursor/skills/implementation-loop/SKILL.md
-  ok   AGENTS.md
+  ok       .cursor/agents/verifier.md
+  ok       .cursor/rules/core.mdc
+  pruned   .cursor/rules/frontend.mdc
+        note: optional rule — absent because localization pruned it, or never installed
+  ok       .cursor/skills/implementation-loop/SKILL.md
+  ok       AGENTS.md
         note: 4 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
-  ok   docs/quality-rubric.md
-  ok   docs/repo-memory.md
+  ok       docs/quality-rubric.md
+  ok       docs/repo-memory.md
         note: 10 TODO placeholder(s) remain — run prompts/localize-cursor-os.md
-  ok   prompts/localize-cursor-os.md
-  ok   .cursor/.cursor-os-version
+  ok       prompts/localize-cursor-os.md
+  ok       .cursor/.cursor-os-version
 ```
 
-(Abbreviated — `doctor` lists every installed file; the version shown matches your checkout. The `note:` lines flag the unfilled TODO placeholders in `AGENTS.md` and `docs/repo-memory.md` that localization resolves. Once localization fills them, `doctor` reports "installed and localized". If the install came from an older Cursor OS version, `doctor` also notes the drift so you can re-run `init` to pick up new files.)
+Abbreviated; `doctor` lists every installed file. The `note:` lines flag unfilled TODO placeholders in `AGENTS.md` and `docs/repo-memory.md`, which localization resolves. Once it does, `doctor` reports "installed and localized".
+
+Two behaviours are worth knowing. If the install came from an earlier version, `doctor` reports the drift, so you can run `init` for new files or `init --update` to also refresh unedited ones. And because localization is instructed to delete `frontend.mdc` and `debugging.mdc` when they do not apply, `doctor` lists those two as `pruned` rather than missing and does not fail.
 
 `init` runs this same health check automatically after installing, so you always see the placeholder count and the next step without a separate command.
 When root manifests expose recognizable tooling, it also prints a concise set of
@@ -186,13 +304,18 @@ Commands:
 
 Options:
   -n, --dry-run     Preview changes without writing anything (init only)
+  -u, --update      Refresh kit files you never edited to the current version (init only)
   -t, --target DIR  Use DIR as the target directory
       --format TYPE Output text or json (detect only; default: text)
   -v, --version     Print version and exit
   -h, --help        Show this help
 ```
 
-A command is required: bare invocation (`npx cursor-os` with no arguments) prints help and never writes files. For a target directory named `init`, `doctor`, or `detect`, or one whose name starts with `-`, use the intended command with `--target <dir>`. Requires Node.js 20 or newer.
+A command is required. Bare invocation (`npx cursor-os` with no arguments) prints help and never writes files.
+
+The target directory must already exist, or be creatable as a single new level under an existing parent; a mistyped multi-level `--target` is rejected rather than created. For a target directory named `init`, `doctor`, or `detect`, or one whose name starts with `-`, use the intended command with `--target <dir>`.
+
+Requires Node.js 20 or newer.
 
 `detect` reads only root manifests, lockfiles, dependency names, and well-known config
 markers. JSON output uses a versioned schema and includes evidence for each signal plus
@@ -255,6 +378,19 @@ prompts/
 - `v0.2` — npm publishing (`npx cursor-os init`), safer CLI defaults, post-install health check, version-drift detection. ✅
 - `v0.3` — read-only project detection, deterministic JSON, and localization preset signals for Next.js, Supabase, and Vercel. 🚧 Unreleased
 - Next — opt-in interactive localization using the detected profile, with explicit review before edits.
+
+## The demo
+
+The comparison at the top of this README is an animated SVG, so it plays on GitHub with
+nothing to install. An interactive version lives in [`demo/`](demo/) and is published at
+<https://kingemma7.github.io/cursor-os/>. It adds playback controls, a scrubber, speed
+selection, and a chrome-free mode for screen recording.
+
+To run it locally, open `demo/index.html` in a browser. It is a single file with no build
+step; the only external request is a webfont, and the page degrades cleanly without it.
+
+`demo/hero.svg` is plain SVG with CSS keyframes and no external references, which is what
+allows GitHub to render it inline. Edit it directly to change the scenario.
 
 ## Contributing
 

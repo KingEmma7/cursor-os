@@ -13,9 +13,11 @@ import {
   readdirSync,
   lstatSync,
   realpathSync,
+  statSync,
 } from "node:fs";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { detect, formatDetectionText } from "./detect.mjs";
 
 export { detect } from "./detect.mjs";
@@ -24,9 +26,73 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
 const templateDir = join(repoRoot, "template");
 const MARKER_REL = join(".cursor", ".cursor-os-version");
+const MANIFEST_REL = join(".cursor", ".cursor-os-manifest.json");
 
 // Prose files doctor scans for unfilled placeholder markers.
 const TODO_FILES = ["AGENTS.md", join("docs", "repo-memory.md")];
+
+// OS and editor artifacts that must never be treated as part of the kit. Without
+// this, a Finder visit to template/ adds .DS_Store to every install and breaks the
+// count-based smoke checks on macOS only, where CI cannot see it.
+const IGNORED_NAMES = new Set([".DS_Store", "Thumbs.db", "desktop.ini", ".AppleDouble"]);
+
+// Opt-in rules that localization is instructed to delete when they don't apply
+// (see prompts/localize-cursor-os.md, step 7). doctor reports these as pruned
+// rather than missing, so a correctly localized project still passes.
+const OPTIONAL_FILES = new Set([
+  join(".cursor", "rules", "frontend.mdc"),
+  join(".cursor", "rules", "debugging.mdc"),
+]);
+
+/** Stable manifest key, independent of the platform path separator. */
+function manifestKey(rel) {
+  return rel.split(sep).join("/");
+}
+
+function hashFile(path) {
+  return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+
+/** Read the install manifest, or null when absent/unreadable (pre-0.3 installs). */
+function readManifest(target) {
+  try {
+    const parsed = JSON.parse(readFileSync(join(target, MANIFEST_REL), "utf8"));
+    return parsed && parsed.files && typeof parsed.files === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Validate a target path. An existing target must be a directory.
+ *
+ * A missing target is acceptable only for init, and only one level below an
+ * existing parent: `cursor-os init my-project` keeps working, while a typo such
+ * as `--target ../projcts/app/web` is refused instead of silently creating the
+ * whole tree. doctor and detect always reject a missing target so the user sees
+ * "no such directory" rather than "not installed".
+ */
+function assertUsableTarget(target, { allowCreate = false } = {}) {
+  const resolved = resolve(target);
+  if (existsSync(resolved)) {
+    if (!statSync(resolved).isDirectory()) {
+      throw new Error(`target is not a directory: ${resolved}`);
+    }
+    return resolved;
+  }
+  if (!allowCreate) {
+    throw new Error(
+      `target directory does not exist: ${resolved}\n       Check the path, or run init there first.`,
+    );
+  }
+  const parent = dirname(resolved);
+  if (!existsSync(parent) || !statSync(parent).isDirectory()) {
+    throw new Error(
+      `target directory does not exist: ${resolved}\n       Its parent (${parent}) does not exist either. Check the path for a typo;\n       cursor-os creates at most one new directory level.`,
+    );
+  }
+  return resolved;
+}
 
 function readVersion() {
   try {
@@ -57,6 +123,7 @@ function parseArgs(argv) {
   const args = {
     command: null,
     dryRun: false,
+    update: false,
     format: "text",
     target: process.cwd(),
     help: false,
@@ -72,6 +139,7 @@ function parseArgs(argv) {
     if (a === "--help" || a === "-h") { args.help = true; }
     else if (a === "--version" || a === "-v") { args.version = true; }
     else if (a === "--dry-run" || a === "-n") { args.dryRun = true; }
+    else if (a === "--update" || a === "-u") { args.update = true; }
     else if (a === "--format") {
       const value = argv[i + 1];
       if (!value || value.startsWith("-")) {
@@ -122,6 +190,10 @@ function parseArgs(argv) {
     args.errors.push("--dry-run is only valid with init");
   }
 
+  if (args.command !== "init" && args.update) {
+    args.errors.push("--update is only valid with init");
+  }
+
   if (args.command !== "detect" && formatSet) {
     args.errors.push("--format is only valid with detect");
   }
@@ -145,6 +217,7 @@ Arguments:
 
 Options:
   -n, --dry-run     Preview changes without writing anything (init only)
+  -u, --update      Refresh kit files you never edited to the current version (init only)
   -t, --target DIR  Use DIR as the target directory
       --format TYPE Output text or json (detect only; default: text)
   -v, --version     Print version and exit
@@ -153,6 +226,7 @@ Options:
 Examples:
   cursor-os init
   cursor-os init --dry-run
+  cursor-os init --update --dry-run
   cursor-os init --target ./my-project
   cursor-os doctor
   cursor-os doctor --target ./my-project
@@ -161,12 +235,15 @@ Examples:
 
 Notes:
   A command is required; bare invocation prints this help and writes nothing.
+  The target directory must already exist.
   For a target directory named "init", "doctor" or "detect", or one starting with "-",
   use the intended command with the explicit form: <command> --target <dir>.
   When running from a local checkout: node scripts/init.mjs <command>
 
 The installer copies AGENTS.md, .cursor/, docs/, and prompts/ into the target.
-It never overwrites existing user files — it skips them and reports.
+It never overwrites a file you have edited. With --update it refreshes only the
+files that still match what a previous install wrote; anything else is reported
+as customized so you can merge it yourself.
 After installing, open Cursor and run prompts/localize-cursor-os.md.`;
 
 // ── File helpers ──────────────────────────────────────────────────────────────
@@ -180,6 +257,7 @@ After installing, open Cursor and run prompts/localize-cursor-os.md.`;
 function listFiles(dir) {
   const out = [];
   for (const entry of readdirSync(dir)) {
+    if (IGNORED_NAMES.has(entry)) continue;
     const full = join(dir, entry);
     if (lstatSync(full).isDirectory()) {
       for (const child of listFiles(full)) out.push(join(entry, child));
@@ -197,44 +275,95 @@ function listFiles(dir) {
  * Returns { created, updated, skipped, target, dryRun, version }.
  * Never overwrites user files: any template path that already exists is skipped.
  */
-export function install({ target, dryRun = false } = {}) {
+export function install({ target, dryRun = false, update = false } = {}) {
   if (!target) throw new Error("install() requires a target directory");
   if (!existsSync(templateDir)) {
     throw new Error(`template directory not found at ${templateDir}`);
   }
+  assertUsableTarget(target, { allowCreate: true });
 
   const version = readVersion();
-  const result = { created: [], updated: [], skipped: [], target, dryRun, version };
-
-  const write = (rel, writer) => {
-    const dest = join(target, rel);
-    if (existsSync(dest)) {
-      result.skipped.push(rel);
-      return;
-    }
-    if (!dryRun) {
-      mkdirSync(dirname(dest), { recursive: true });
-      writer(dest);
-    }
-    result.created.push(rel);
+  const result = {
+    created: [],
+    refreshed: [],
+    skipped: [],
+    stale: [],
+    customized: [],
+    updated: [],
+    target,
+    dryRun,
+    update,
+    version,
   };
+
+  const priorManifest = readManifest(target);
+  const nextFiles = {};
 
   for (const rel of listFiles(templateDir).sort()) {
     const src = join(templateDir, rel);
-    write(rel, (dest) => copyFileSync(src, dest));
+    const dest = join(target, rel);
+    const templateHash = hashFile(src);
+    const key = manifestKey(rel);
+
+    if (!existsSync(dest)) {
+      if (!dryRun) {
+        mkdirSync(dirname(dest), { recursive: true });
+        copyFileSync(src, dest);
+      }
+      result.created.push(rel);
+      nextFiles[key] = templateHash;
+      continue;
+    }
+
+    const currentHash = hashFile(dest);
+    if (currentHash === templateHash) {
+      // Byte-identical to the shipped template; nothing to do.
+      result.skipped.push(rel);
+      nextFiles[key] = templateHash;
+      continue;
+    }
+
+    // The file differs from the template. The manifest tells us whether that is
+    // an edit worth preserving or drift from an older release worth refreshing.
+    const recordedHash = priorManifest?.files?.[key] ?? null;
+    const untouchedSinceInstall = recordedHash !== null && recordedHash === currentHash;
+
+    if (update && untouchedSinceInstall) {
+      if (!dryRun) copyFileSync(src, dest);
+      result.refreshed.push(rel);
+      nextFiles[key] = templateHash;
+    } else {
+      // Never overwrite an edit. Without a manifest every difference is treated
+      // as an edit, which is the safe reading for installs predating 0.3.0.
+      if (untouchedSinceInstall) result.stale.push(rel);
+      else result.customized.push(rel);
+      nextFiles[key] = recordedHash ?? currentHash;
+    }
   }
 
   const markerDest = join(target, MARKER_REL);
   if (existsSync(markerDest)) {
-    if (!dryRun) {
-      writeFileSync(markerDest, `cursor-os ${version}\n`, "utf8");
-    }
+    if (!dryRun) writeFileSync(markerDest, `cursor-os ${version}\n`, "utf8");
     result.updated.push(MARKER_REL);
   } else {
-    write(MARKER_REL, (dest) =>
-      writeFileSync(dest, `cursor-os ${version}\n`, "utf8"),
+    if (!dryRun) {
+      mkdirSync(dirname(markerDest), { recursive: true });
+      writeFileSync(markerDest, `cursor-os ${version}\n`, "utf8");
+    }
+    result.created.push(MARKER_REL);
+  }
+
+  const manifestDest = join(target, MANIFEST_REL);
+  const manifestExisted = existsSync(manifestDest);
+  if (!dryRun) {
+    mkdirSync(dirname(manifestDest), { recursive: true });
+    writeFileSync(
+      manifestDest,
+      `${JSON.stringify({ schemaVersion: 1, version, files: nextFiles }, null, 2)}\n`,
+      "utf8",
     );
   }
+  (manifestExisted ? result.updated : result.created).push(MANIFEST_REL);
 
   return result;
 }
@@ -269,10 +398,12 @@ function readMarkerVersion(target) {
  */
 export function doctor({ target } = {}) {
   if (!target) throw new Error("doctor() requires a target directory");
+  assertUsableTarget(target);
 
   const checks = doctorChecks().map(({ rel, label }) => {
     const fullPath = join(target, rel);
     const present = existsSync(fullPath);
+    const optional = OPTIONAL_FILES.has(rel);
     let note = null;
     let todoCount = 0;
 
@@ -287,11 +418,22 @@ export function doctor({ target } = {}) {
       }
     }
 
-    return { label, present, note, todoCount };
+    if (!present && optional) {
+      note = "optional rule — absent because localization pruned it, or never installed";
+    }
+
+    return { label, present, optional, note, todoCount };
   });
 
   const todoCount = checks.reduce((n, c) => n + c.todoCount, 0);
-  return { checks, todoCount, markerVersion: readMarkerVersion(target), target };
+  const missingRequired = checks.filter((c) => !c.present && !c.optional).length;
+  return {
+    checks,
+    todoCount,
+    missingRequired,
+    markerVersion: readMarkerVersion(target),
+    target,
+  };
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
@@ -306,9 +448,24 @@ function runInit(args) {
     console.log(`${verb} ${result.created.length} file(s):`);
     for (const f of result.created) console.log(`  + ${f}`);
   }
+  if (result.refreshed.length) {
+    const refreshVerb = args.dryRun ? "Would refresh" : "Refreshed";
+    console.log(`\n${refreshVerb} ${result.refreshed.length} unedited file(s):`);
+    for (const f of result.refreshed) console.log(`  ^ ${f}`);
+  }
   if (result.skipped.length) {
-    console.log(`\nSkipped ${result.skipped.length} existing file(s):`);
+    console.log(`\nSkipped ${result.skipped.length} up-to-date file(s):`);
     for (const f of result.skipped) console.log(`  = ${f}`);
+  }
+  if (result.stale.length) {
+    console.log(`\n${result.stale.length} unedited file(s) are behind the current template:`);
+    for (const f of result.stale) console.log(`  ! ${f}`);
+    console.log("  Run init --update to refresh them.");
+  }
+  if (result.customized.length) {
+    console.log(`\nKept ${result.customized.length} edited file(s):`);
+    for (const f of result.customized) console.log(`  * ${f}`);
+    console.log("  These differ from the current template. Merge by hand if you want the new version.");
   }
   if (result.updated.length) {
     const updateVerb = args.dryRun ? "Would refresh" : "Refreshed";
@@ -324,7 +481,7 @@ function runInit(args) {
   // Post-install health check: confirm the install and surface what
   // localization still needs to fill in, so the next step is unmissable.
   const health = doctor({ target: args.target });
-  const missing = health.checks.filter((c) => !c.present).length;
+  const missing = health.missingRequired;
   // Show a relative path only when the target is inside this checkout.
   const rel = relative(repoRoot, args.target);
   let where = rel || "this repo";
@@ -366,26 +523,25 @@ function runDoctor(args) {
   console.log(`Cursor OS v${version} — doctor`);
   console.log(`Target: ${args.target}\n`);
 
-  let allPresent = true;
-  for (const { label, present, note } of result.checks) {
-    const symbol = present ? "ok " : "MISSING";
+  for (const { label, present, optional, note } of result.checks) {
+    const symbol = present ? "ok     " : optional ? "pruned " : "MISSING";
     console.log(`  ${symbol}  ${label}`);
     if (note) console.log(`        note: ${note}`);
-    if (!present) allPresent = false;
   }
 
   if (result.markerVersion && result.markerVersion !== version) {
     console.log(`\n  note: installed from cursor-os ${result.markerVersion}; current is ${version}.`);
-    console.log("        Re-run init to add any files introduced since (existing files are never overwritten).");
+    console.log("        Re-run init to add files introduced since, or init --update to also");
+    console.log("        refresh kit files you have not edited.");
   }
 
   console.log("");
-  if (allPresent && result.todoCount === 0) {
+  if (result.missingRequired === 0 && result.todoCount === 0) {
     console.log("Cursor OS appears installed and localized.");
-  } else if (allPresent) {
+  } else if (result.missingRequired === 0) {
     console.log("Cursor OS is installed. Run prompts/localize-cursor-os.md to complete setup.");
   } else {
-    console.log("Cursor OS is not fully installed. Run: cursor-os init");
+    console.log(`Cursor OS is not fully installed (${result.missingRequired} required file(s) missing). Run: cursor-os init`);
     process.exitCode = 1;
   }
 }

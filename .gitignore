@@ -21,10 +21,15 @@ tmp/
 # npm pack output
 *.tgz
 
-# cursor-os installed on itself (dogfooded). The files below are byte-for-byte
+# cursor-os installed on itself. The paths below are byte-for-byte copies of
+# template/; tracking them would duplicate the source of truth and let the two
+# drift. Recreate them in a fresh clone with:
+#     node scripts/init.mjs init --target .
+# Until then, doctor reports them as missing on a fresh clone.
 .cursor/agents/
 .cursor/skills/
 .cursor/.cursor-os-version
+.cursor/.cursor-os-manifest.json
 .cursor/rules/core.mdc
 .cursor/rules/debugging.mdc
 .cursor/rules/frontend.mdc

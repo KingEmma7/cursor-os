@@ -19,6 +19,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const scriptPath = fileURLToPath(new URL("./init.mjs", import.meta.url));
@@ -111,8 +112,15 @@ withTempDir((dir) => {
     ),
   );
   check("reports created files", result.created.length >= EXPECTED.length);
-  check("reports no refreshed files on a clean install", result.updated.length === 0);
+  check("clean install refreshes nothing", result.updated.length === 0);
   check("reports nothing skipped on a clean install", result.skipped.length === 0);
+  check("reports nothing stale on a clean install", result.stale.length === 0);
+  check("reports nothing customized on a clean install", result.customized.length === 0);
+  check("writes an install manifest", existsSync(join(dir, ".cursor", ".cursor-os-manifest.json")));
+  check(
+    "counts the manifest as created, not refreshed",
+    result.created.includes(join(".cursor", ".cursor-os-manifest.json")),
+  );
 });
 
 // 2. --dry-run writes nothing.
@@ -120,7 +128,7 @@ console.log("\ndry run:");
 withTempDir((dir) => {
   const result = install({ target: dir, dryRun: true });
   check("dry run reports files it would create", result.created.length > 0);
-  check("dry run reports no refreshed files in an empty dir", result.updated.length === 0);
+  check("dry run refreshes nothing in an empty dir", result.updated.length === 0);
   check("dry run writes zero files to disk", listAll(dir).length === 0);
 });
 
@@ -135,7 +143,7 @@ withTempDir((dir) => {
   const result = install({ target: dir, dryRun: true });
   check(
     "dry run reports existing marker would refresh",
-    result.updated.length === 1 && result.updated[0] === join(".cursor", ".cursor-os-version"),
+    result.updated.includes(join(".cursor", ".cursor-os-version")),
   );
   check(
     "dry run preserves existing marker byte-for-byte",
@@ -155,19 +163,24 @@ withTempDir((dir) => {
     "preserves a pre-existing AGENTS.md byte-for-byte",
     readFileSync(agentsPath, "utf8") === sentinel,
   );
-  check("reports the pre-existing file as skipped", result.skipped.includes("AGENTS.md"));
+  check(
+    "reports the pre-existing, user-authored file as customized",
+    result.customized.includes("AGENTS.md") && !result.skipped.includes("AGENTS.md"),
+  );
   check("still creates the other files", existsSync(join(dir, "docs", "repo-memory.md")));
 
   // Re-running is a no-op: everything already present is skipped.
   const second = install({ target: dir });
   check("second run creates nothing new", second.created.length === 0);
   check(
-    "second run refreshes only the version marker",
-    second.updated.length === 1 && second.updated[0] === join(".cursor", ".cursor-os-version"),
+    "second run refreshes only generated files",
+    second.updated.length === 2 &&
+      second.updated.includes(join(".cursor", ".cursor-os-version")) &&
+      second.updated.includes(join(".cursor", ".cursor-os-manifest.json")),
   );
   check(
-    "second run skips every template file",
-    second.skipped.length === EXPECTED.length,
+    "second run leaves every template file untouched",
+    second.skipped.length + second.stale.length + second.customized.length === EXPECTED.length,
   );
 });
 
@@ -544,6 +557,135 @@ withTempDir((dir) => {
   const dryRunDetect = runCli(["detect", "--dry-run"], { cwd: dir });
   check("CLI detect --dry-run exits non-zero", dryRunDetect.status === 1);
   check("CLI detect --dry-run prints error", dryRunDetect.stderr.includes("--dry-run is only valid with init"));
+});
+
+
+// ── Regression coverage added by the audit ────────────────────────────────────
+
+// Optional (prunable) rules: localization is told to delete frontend.mdc when
+// the project has no UI. doctor must not call that a broken install.
+console.log("\npruned optional rules:");
+withTempDir((dir) => {
+  install({ target: dir });
+  rmSync(join(dir, ".cursor", "rules", "frontend.mdc"));
+  const health = doctor({ target: dir });
+  check("pruning frontend.mdc leaves zero required files missing", health.missingRequired === 0);
+  const pruned = health.checks.find((c) => c.label === join(".cursor", "rules", "frontend.mdc"));
+  check("pruned optional rule is flagged optional, not missing", pruned.optional === true && pruned.present === false);
+
+  const cli = runCli(["doctor", "--target", dir]);
+  check("CLI doctor exits 0 after an optional rule is pruned", cli.status === 0);
+  check("CLI doctor labels the pruned rule", cli.stdout.includes("pruned"));
+  check("CLI doctor does not claim a broken install", !cli.stdout.includes("not fully installed"));
+
+  // A required file going missing must still fail.
+  rmSync(join(dir, "AGENTS.md"));
+  const broken = runCli(["doctor", "--target", dir]);
+  check("CLI doctor still fails when a required file is missing", broken.status === 1);
+});
+
+// Target validation: a typo must not scatter the kit into a fabricated tree.
+console.log("\ntarget validation:");
+withTempDir((dir) => {
+  const deep = join(dir, "no", "such", "tree");
+  const cli = runCli(["init", "--target", deep]);
+  check("init refuses a target whose parent does not exist", cli.status === 1);
+  check("init explains the missing parent", cli.stderr.includes("parent"));
+  check("init wrote nothing for the bad target", !existsSync(join(dir, "no")));
+
+  const oneLevel = join(dir, "new-project");
+  const ok = runCli(["init", "--target", oneLevel]);
+  check("init still creates a single new directory level", ok.status === 0);
+  check("init populated the new directory", existsSync(join(oneLevel, "AGENTS.md")));
+
+  const filePath = join(dir, "a-file.txt");
+  writeFileSync(filePath, "not a directory\n", "utf8");
+  const notDir = runCli(["init", "--target", filePath]);
+  check("init rejects a file as target", notDir.status === 1);
+  check("init names the not-a-directory problem", notDir.stderr.includes("not a directory"));
+
+  const missingDoctor = runCli(["doctor", "--target", join(dir, "absent")]);
+  check("doctor on a missing dir exits non-zero", missingDoctor.status === 1);
+  check(
+    "doctor on a missing dir says the dir is missing, not that the OS is uninstalled",
+    missingDoctor.stderr.includes("does not exist") && !missingDoctor.stdout.includes("not fully installed"),
+  );
+});
+
+// --update: refresh stale kit files, never clobber edited ones.
+console.log("\nupdate semantics:");
+withTempDir((dir) => {
+  install({ target: dir });
+  const corePath = join(dir, ".cursor", "rules", "core.mdc");
+  const agentsPath = join(dir, "AGENTS.md");
+  const pristineCore = readFileSync(corePath, "utf8");
+
+  // Simulate a stale file from an older release by rewriting the manifest hash
+  // to match the on-disk content after we mutate it... instead, mutate the file
+  // and re-record it, which is exactly the "installed, never edited" state.
+  writeFileSync(corePath, "stale content from an older release\n", "utf8");
+  const manifestPath = join(dir, ".cursor", ".cursor-os-manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  manifest.files[".cursor/rules/core.mdc"] = createHash("sha256")
+    .update(readFileSync(corePath))
+    .digest("hex");
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
+
+  // A genuine user edit, which must survive --update.
+  const userEdit = readFileSync(agentsPath, "utf8") + "\n## Our team rule\nAlways run make check.\n";
+  writeFileSync(agentsPath, userEdit, "utf8");
+
+  const preview = install({ target: dir, update: true, dryRun: true });
+  check("update dry-run reports the stale file as refreshable", preview.refreshed.includes(join(".cursor", "rules", "core.mdc")));
+  check("plain init classifies it as stale, not skipped", (() => {
+    const plain = install({ target: dir, dryRun: true });
+    return plain.stale.includes(join(".cursor", "rules", "core.mdc"))
+      && !plain.skipped.includes(join(".cursor", "rules", "core.mdc"));
+  })());
+  check("update dry-run writes nothing", readFileSync(corePath, "utf8") === "stale content from an older release\n");
+
+  const applied = install({ target: dir, update: true });
+  check("update refreshes the unedited stale file", readFileSync(corePath, "utf8") === pristineCore);
+  check("update preserves the user-edited file byte-for-byte", readFileSync(agentsPath, "utf8") === userEdit);
+  check("update reports the edited file as customized", applied.customized.includes("AGENTS.md"));
+
+  const cli = runCli(["init", "--update", "--target", dir]);
+  check("CLI init --update exits 0", cli.status === 0);
+
+  const badFlag = runCli(["doctor", "--update", "--target", dir]);
+  check("CLI rejects --update outside init", badFlag.status === 1);
+  check("CLI explains the --update restriction", badFlag.stderr.includes("--update is only valid with init"));
+});
+
+// Plain init must never overwrite, even when a file is stale.
+console.log("\ninit without --update never overwrites:");
+withTempDir((dir) => {
+  install({ target: dir });
+  const corePath = join(dir, ".cursor", "rules", "core.mdc");
+  writeFileSync(corePath, "user rewrote this\n", "utf8");
+  const result = install({ target: dir });
+  check("plain init leaves the edited file alone", readFileSync(corePath, "utf8") === "user rewrote this\n");
+  check("plain init reports it as customized", result.customized.includes(join(".cursor", "rules", "core.mdc")));
+  check("an edited file is never reported as stale", !result.stale.includes(join(".cursor", "rules", "core.mdc")));
+});
+
+// Regression: a stray .DS_Store in template/ used to be copied into every install
+// and broke three count-based checks, on macOS only.
+console.log("\nOS artifacts in template/:");
+withTempDir((dir) => {
+  const junk = join(repoRoot, "template", ".DS_Store");
+  const preexisting = existsSync(junk);
+  if (!preexisting) writeFileSync(junk, "", "utf8");
+  try {
+    const result = install({ target: dir });
+    check("install ignores .DS_Store in template/", !result.created.some((f) => f.includes(".DS_Store")));
+    check("no OS artifact reaches the target", !existsSync(join(dir, ".DS_Store")));
+    check("expected file count is unchanged", result.created.length === EXPECTED.length + 2);
+    check("doctor does not check for OS artifacts",
+      !doctor({ target: dir }).checks.some((c) => c.label.includes(".DS_Store")));
+  } finally {
+    if (!preexisting) rmSync(junk, { force: true });
+  }
 });
 
 console.log(`\n${passed} checks passed, ${failures.length} failed.`);

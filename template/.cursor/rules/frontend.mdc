@@ -1,10 +1,6 @@
 ---
 description: UI/component conventions. Apply when building or changing user-facing frontend code.
-globs:
-  - "**/*.tsx"
-  - "**/*.jsx"
-  - "**/*.vue"
-  - "**/*.svelte"
+globs: **/*.tsx,**/*.jsx,**/*.vue,**/*.svelte
 alwaysApply: false
 ---
 
