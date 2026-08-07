@@ -610,13 +610,13 @@ function runDoctor(args) {
   if (result.staleManaged > 0) console.log(`  note: ${result.staleManaged} managed file(s) can be refreshed with init --update.`);
   if (result.obsolete.length > 0) console.log(`  note: ${result.obsolete.length} managed path(s) are no longer in the template.`);
   if (result.markerVersion && result.markerVersion !== version) {
-    console.log(`  note: version marker says ${result.markerVersion}; current package is ${version}.`);
+    console.log(`  note: installed from cursor-os ${result.markerVersion}; current is ${version}.`);
   }
 
   console.log("");
   const broken = result.missingRequired > 0 || result.conflicts > 0 || result.manifestStatus === "invalid";
   if (broken) {
-    console.log(`Cursor OS needs attention (${result.missingRequired} required missing, ${result.conflicts} conflict(s)).`);
+    console.log(`Cursor OS is not fully installed (${result.missingRequired} required file(s) missing, ${result.conflicts} conflict(s)). Run: cursor-os init`);
     process.exitCode = 1;
   } else if (result.todoCount > 0) {
     console.log("Cursor OS is installed. Run prompts/localize-cursor-os.md to complete setup.");
