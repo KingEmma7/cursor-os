@@ -1,6 +1,8 @@
 # Support
 
-Cursor OS is currently pre-npm and maintained as an open-source project.
+Cursor OS is published on npm and maintained as an open-source project.
+
+Install: `npx cursor-os init` · Repo: https://github.com/KingEmma7/cursor-os
 
 ## Before opening an issue
 
@@ -8,8 +10,7 @@ Cursor OS is currently pre-npm and maintained as an open-source project.
 2. Run:
 
    ```bash
-   npm test
-   node scripts/init.mjs doctor --target /path/to/your-project
+   npx cursor-os doctor --target /path/to/your-project
    ```
 
 3. If Cursor OS is installed but still generic, run `prompts/localize-cursor-os.md` in Cursor. The base template is not project-aware until localization runs.

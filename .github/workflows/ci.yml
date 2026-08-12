@@ -35,6 +35,17 @@ jobs:
           ./node_modules/.bin/cursor-os detect --target ./proj --format json | grep -q '"schemaVersion": 1'
           # bare invocation must print help and write nothing
           ./node_modules/.bin/cursor-os | grep -q "Usage:"
+          # the install manifest must ship so --update can tell stale from edited
+          test -f ./proj/.cursor/.cursor-os-manifest.json
+          # pruning an opt-in rule is a supported end state, not a broken install
+          rm ./proj/.cursor/rules/frontend.mdc
+          ./node_modules/.bin/cursor-os doctor --target ./proj | grep -q "pruned"
+          ./node_modules/.bin/cursor-os doctor --target ./proj
+          # a mistyped multi-level target must be refused, not fabricated
+          ! ./node_modules/.bin/cursor-os init --target ./no/such/tree
+          test ! -d ./no
+          # --update is a no-op preview on an unmodified install
+          ./node_modules/.bin/cursor-os init --update --dry-run --target ./proj
           # programmatic import must resolve
           node -e "import('cursor-os').then(m => { if (typeof m.install !== 'function' || typeof m.doctor !== 'function' || typeof m.detect !== 'function') process.exit(1); }).catch(() => process.exit(1))"
 

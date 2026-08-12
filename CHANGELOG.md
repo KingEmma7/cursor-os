@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-08-07
+
 ### Added
 
 - Read-only `detect` command with deterministic text and versioned JSON output.
@@ -18,8 +20,37 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Detection warnings for malformed `package.json` and competing package-manager
   lockfiles; neither condition prevents a partial report.
 - Smoke coverage for programmatic and CLI detection, JSON parsing, read-only behavior,
-  invalid formats, stack presets, malformed manifests, and post-install signals (155
-  checks total).
+  invalid formats, stack presets, malformed manifests, and post-install signals.
+- `init --update`, which refreshes kit files that still match what a previous install
+  wrote and leaves edited files alone. Backed by `.cursor/.cursor-os-manifest.json`,
+  an install manifest recording a SHA-256 per file. Installs predating 0.3.0 have no
+  manifest, so every differing file is treated as edited until the next `init` writes
+  one.
+- `install()` now classifies each file as `created`, `refreshed`, `skipped` (identical
+  to the template), `stale` (unedited but behind the template), `customized` (edited
+  and preserved), or `updated` (generated files).
+- `doctor()` returns `missingRequired`, and each check carries an `optional` flag.
+- Smoke suite expanded to 194 checks, covering pruned rules, target validation, update
+  semantics, and OS artifacts in `template/`.
+
+### Fixed
+
+- `doctor` no longer reports a broken install when localization prunes the opt-in rules
+  (`frontend.mdc`, `debugging.mdc`), which `prompts/localize-cursor-os.md` instructs it
+  to do. They are listed as `pruned` and no longer cause a non-zero exit.
+- `init` no longer creates a directory tree from a mistyped `--target`. It creates at
+  most one new directory level and reports the missing parent otherwise.
+- `doctor` and `detect` against a nonexistent directory now report that the directory is
+  missing rather than that Cursor OS is not installed.
+- `init` against a regular file fails with a clear message instead of a raw `ENOTDIR`.
+- The installer no longer treats OS artifacts (`.DS_Store`, `Thumbs.db`, `desktop.ini`)
+  as part of the kit. A stray `.DS_Store` in `template/` was copied into every install
+  and broke three count-based smoke checks on macOS, where CI could not observe it.
+- `template/.cursor/rules/frontend.mdc` declared `globs` as a YAML block sequence.
+  Cursor's `.mdc` frontmatter is not strictly YAML and documents a comma-separated
+  list, so the rule may not have attached. Now `globs: **/*.tsx,**/*.jsx,...`.
+- Corrected bin entry in `package.json` via `npm pkg fix` (the hyphenated key `cursor-os`
+  was auto-corrected during publish; this makes the source file match what npm holds).
 
 ### Changed
 

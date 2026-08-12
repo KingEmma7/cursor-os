@@ -4,9 +4,7 @@ Cursor OS is an installable set of repo-local guidance, prompts, rules, and a de
 
 ## Supported versions
 
-Until the first public release, only the current `main` branch is supported.
-
-After npm publishing begins, security fixes will target the latest released minor version unless otherwise stated in the changelog.
+Security fixes target the latest released minor version on npm (`cursor-os`). The current `main` branch is also supported between releases.
 
 ## Reporting a vulnerability
 

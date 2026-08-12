@@ -1,6 +1,6 @@
 # Release checklist
 
-Use this checklist before tagging a public release or publishing Cursor OS to npm.
+Use this checklist before tagging a release or publishing Cursor OS to npm.
 
 ## Repository
 
@@ -66,3 +66,11 @@ Only after all previous sections pass:
 - [ ] Run `npm publish` only when intentionally publishing.
 - [ ] README install examples use the `npx cursor-os` form (done in the release commit, not after).
 - [ ] After publish, verify with `npm view cursor-os` and `npx cursor-os@latest init --dry-run --target <tmp>`.
+
+## After publishing
+
+- [ ] `npm view cursor-os version` shows the expected version.
+- [ ] `npx cursor-os --version` shows the expected version.
+- [ ] `npx cursor-os init --dry-run --target <tmp>` works in a clean directory.
+- [ ] GitHub Release notes for the tag link to npm and include `npx cursor-os init`.
+- [ ] `main` has no undocumented post-tag changes that differ from what npm published (run `git log --oneline vX.Y.Z..main`; document any intentional drift under `[Unreleased]` in `CHANGELOG.md`).

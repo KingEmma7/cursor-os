@@ -1,6 +1,6 @@
 {
   "name": "cursor-os",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An installable operating layer that makes Cursor project-aware: a portable engineering contract, rules, memory docs, and prompts that adapt to any repository.",
   "type": "module",
   "bin": {
@@ -14,12 +14,13 @@
     "doctor": "node scripts/init.mjs doctor",
     "detect": "node scripts/init.mjs detect",
     "pack:dry-run": "npm pack --dry-run",
-    "test": "node scripts/smoke-test.mjs"
+    "test": "node scripts/smoke-test.mjs && node scripts/upgrade-smoke-test.mjs"
   },
   "files": [
     "template",
     "scripts/init.mjs",
     "scripts/detect.mjs",
+    "scripts/upgrade-smoke-test.mjs",
     "examples",
     "README.md",
     "LICENSE",

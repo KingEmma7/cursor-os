@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 680" width="1240" height="680" role="img" aria-label="Side-by-side comparison: the same feature request handled by Cursor without project context and with Cursor OS installed. Without it the model invents a Pages Router, bypasses the Supabase session layer, adds a duplicate toast library, ships a table with row-level security off, and claims completion without running checks. With it, the model reads the engineering contract, uses the repo's server-action and client-factory conventions, ships the RLS policy, adds no dependencies, and reports verified command output.">
+<defs>
+  <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+    <path d="M16 0H0v16" fill="none" stroke="#1f426e" stroke-opacity=".08" stroke-width="1"/>
+  </pattern>
+  <pattern id="gridM" width="96" height="96" patternUnits="userSpaceOnUse">
+    <path d="M96 0H0v96" fill="none" stroke="#1f426e" stroke-opacity=".14" stroke-width="1"/>
+  </pattern>
+  <style>
+    .mono{font-family:ui-monospace,"SFMono-Regular","IBM Plex Mono",Menlo,Consolas,monospace}
+    .disp{font-family:"Barlow Condensed","Helvetica Neue Condensed",Impact,sans-serif;letter-spacing:.02em}
+    .sans{font-family:ui-sans-serif,system-ui,"Segoe UI",sans-serif}
+    @keyframes ke0{0%,2.862%{opacity:0;transform:translateY(5px)}3.462%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e0{animation:ke0 26000ms linear infinite}
+@keyframes ke1{0%,6.131%{opacity:0;transform:translateY(5px)}6.731%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e1{animation:ke1 26000ms linear infinite}
+@keyframes ke2{0%,9.592%{opacity:0;transform:translateY(5px)}10.192%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e2{animation:ke2 26000ms linear infinite}
+@keyframes ke3{0%,13.246%{opacity:0;transform:translateY(5px)}13.846%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e3{animation:ke3 26000ms linear infinite}
+@keyframes ke4{0%,17.285%{opacity:0;transform:translateY(5px)}17.885%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e4{animation:ke4 26000ms linear infinite}
+@keyframes ke5{0%,20.938%{opacity:0;transform:translateY(5px)}21.538%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e5{animation:ke5 26000ms linear infinite}
+@keyframes ke6{0%,24.977%{opacity:0;transform:translateY(5px)}25.577%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e6{animation:ke6 26000ms linear infinite}
+@keyframes ke7{0%,28.438%{opacity:0;transform:translateY(5px)}29.038%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e7{animation:ke7 26000ms linear infinite}
+@keyframes ke8{0%,32.477%{opacity:0;transform:translateY(5px)}33.077%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e8{animation:ke8 26000ms linear infinite}
+@keyframes ke9{0%,36.515%{opacity:0;transform:translateY(5px)}37.115%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e9{animation:ke9 26000ms linear infinite}
+@keyframes ke10{0%,39.977%{opacity:0;transform:translateY(5px)}40.577%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e10{animation:ke10 26000ms linear infinite}
+@keyframes ke11{0%,44.015%{opacity:0;transform:translateY(5px)}44.615%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e11{animation:ke11 26000ms linear infinite}
+@keyframes ke12{0%,2.862%{opacity:0;transform:translateY(5px)}3.462%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e12{animation:ke12 26000ms linear infinite}
+@keyframes ke13{0%,6.131%{opacity:0;transform:translateY(5px)}6.731%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e13{animation:ke13 26000ms linear infinite}
+@keyframes ke14{0%,11.9%{opacity:0;transform:translateY(5px)}12.5%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e14{animation:ke14 26000ms linear infinite}
+@keyframes ke15{0%,17.668999999999997%{opacity:0;transform:translateY(5px)}18.269%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e15{animation:ke15 26000ms linear infinite}
+@keyframes ke16{0%,23.438%{opacity:0;transform:translateY(5px)}24.038%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e16{animation:ke16 26000ms linear infinite}
+@keyframes ke17{0%,29.208%{opacity:0;transform:translateY(5px)}29.808%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e17{animation:ke17 26000ms linear infinite}
+@keyframes ke18{0%,34.977%{opacity:0;transform:translateY(5px)}35.577%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e18{animation:ke18 26000ms linear infinite}
+@keyframes ke19{0%,41.131%{opacity:0;transform:translateY(5px)}41.731%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e19{animation:ke19 26000ms linear infinite}
+@keyframes ke20{0%,47.285%{opacity:0;transform:translateY(5px)}47.885%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e20{animation:ke20 26000ms linear infinite}
+@keyframes ke21{0%,50.745999999999995%{opacity:0;transform:translateY(5px)}51.346%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e21{animation:ke21 26000ms linear infinite}
+@keyframes ke22{0%,58.054%{opacity:0;transform:translateY(5px)}58.654%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e22{animation:ke22 26000ms linear infinite}
+@keyframes ke23{0%,58.054%{opacity:0;transform:translateY(5px)}58.654%,95%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+#e23{animation:ke23 26000ms linear infinite}
+    @media (prefers-reduced-motion:reduce){
+      text[id]{animation:none!important;opacity:1!important;transform:none!important}
+    }
+  </style>
+</defs>
+
+<rect width="1240" height="680" fill="#e4e8ed"/>
+<rect width="1240" height="680" fill="url(#grid)"/>
+<rect width="1240" height="680" fill="url(#gridM)"/>
+
+<!-- registration marks -->
+<g stroke="#1f5a96" stroke-opacity=".5" stroke-width="1.5">
+  <path d="M14 14h22M14 14v22"/><path d="M1226 14h-22M1226 14v22"/>
+  <path d="M14 666h22M14 666v-22"/><path d="M1226 666h-22M1226 666v-22"/>
+</g>
+
+<!-- masthead -->
+<line x1="34" y1="110" x2="1206" y2="110" stroke="#14202e" stroke-width="2"/>
+<text class="mono" x="34" y="44" fill="#1f5a96" font-size="12" letter-spacing="2.4">DUAL-CHANNEL COMPARISON — ONE REQUEST, TWO SESSIONS</text>
+<text class="sans" x="34" y="90" fill="#14202e" font-size="32" font-weight="700" letter-spacing="-0.4">CURSOR WITHOUT CONTEXT <tspan fill="#6d8095" font-weight="400">vs.</tspan> CURSOR OS</text>
+<text class="mono" x="1206" y="44" fill="#6d8095" font-size="12" text-anchor="end">orbit — Next.js 15 · App Router · Supabase RLS</text>
+<text class="mono" x="1206" y="90" fill="#14202e" font-size="13.5" text-anchor="end" font-weight="600">TASK  Add a team-invite flow</text>
+
+<!-- panels -->
+<rect x="34" y="124" width="573" height="512" fill="#f7f9fa" stroke="#14202e"/>
+<rect x="633" y="124" width="573" height="512" fill="#f7f9fa" stroke="#14202e" stroke-width="1.5"/>
+<line x1="34" y1="154" x2="607" y2="154" stroke="#d3dae2"/>
+<line x1="633" y1="154" x2="1206" y2="154" stroke="#d3dae2"/>
+
+<rect x="50" y="132" width="52" height="18" fill="none" stroke="#a82b21"/>
+<text class="mono" x="57" y="145" fill="#a82b21" font-size="10.5" letter-spacing="1.6">CH A</text>
+<text class="disp" x="112" y="146" fill="#14202e" font-size="19" font-weight="600">WITHOUT CURSOR OS</text>
+<text class="mono" x="591" y="145" fill="#6d8095" font-size="10.5" text-anchor="end">context: 2 open files</text>
+
+<rect x="649" y="132" width="52" height="18" fill="none" stroke="#186052"/>
+<text class="mono" x="656" y="145" fill="#186052" font-size="10.5" letter-spacing="1.6">CH B</text>
+<text class="disp" x="711" y="146" fill="#14202e" font-size="19" font-weight="600">WITH CURSOR OS</text>
+<text class="mono" x="1190" y="145" fill="#6d8095" font-size="10.5" text-anchor="end">context: contract + memory</text>
+
+<line x1="34" y1="602" x2="607" y2="602" stroke="#14202e"/>
+<line x1="633" y1="602" x2="1206" y2="602" stroke="#14202e"/>
+
+<text id="e0" class="mono" x="56" y="190" fill="#14202e" font-weight="600" font-size="14.5">You   Add a team-invite flow.</text>
+<text id="e1" class="mono" x="56" y="224" fill="#3d5064" font-size="14.5">Agent I'll add an API route and a form component.</text>
+<text id="e2" class="mono" x="56" y="250" fill="#1f5a96" font-size="14.5">// pages/api/invite.ts</text>
+<text id="e3" class="mono" x="56" y="284" fill="#a82b21" font-size="14.5">✗  Pages Router — removed from this repo 14 months ago</text>
+<text id="e4" class="mono" x="56" y="318" fill="#1f5a96" font-size="14.5">const supabase = createClient(URL, ANON_KEY)</text>
+<text id="e5" class="mono" x="56" y="344" fill="#a82b21" font-size="14.5">✗  Bypasses the @supabase/ssr session layer</text>
+<text id="e6" class="mono" x="56" y="378" fill="#3d5064" font-size="14.5">Agent Installing react-hot-toast for the success toast.</text>
+<text id="e7" class="mono" x="56" y="404" fill="#a82b21" font-size="14.5">✗  Second toast library — sonner is already here</text>
+<text id="e8" class="mono" x="56" y="438" fill="#a82b21" font-size="14.5">✗  invitations table created with RLS switched off</text>
+<text id="e9" class="mono" x="56" y="472" fill="#3d5064" font-size="14.5">Agent Done — the invite flow should work.</text>
+<text id="e10" class="mono" x="56" y="498" fill="#a82b21" font-size="14.5">✗  Zero checks executed before claiming completion</text>
+<text id="e11" class="mono" x="56" y="532" fill="#a82b21" font-size="14.5">✗  Guessed teams.owner_id — the column is owner_user_id</text>
+<text id="e12" class="mono" x="655" y="190" fill="#14202e" font-weight="600" font-size="14.5">You   Add a team-invite flow.</text>
+<text id="e13" class="mono" x="655" y="224" fill="#3d5064" font-size="14.5">Agent Reading AGENTS.md and docs/repo-memory.md first.</text>
+<text id="e14" class="mono" x="655" y="250" fill="#6d8095" font-size="14.5">App Router · server actions · no API routes for writes</text>
+<text id="e15" class="mono" x="655" y="284" fill="#186052" font-size="14.5">✓  app/(app)/team/actions.ts — server action</text>
+<text id="e16" class="mono" x="655" y="310" fill="#186052" font-size="14.5">✓  client from lib/supabase/server.ts factory</text>
+<text id="e17" class="mono" x="655" y="336" fill="#186052" font-size="14.5">✓  migration ships the RLS policy alongside the table</text>
+<text id="e18" class="mono" x="655" y="362" fill="#186052" font-size="14.5">✓  reused sonner + existing zod schema · 0 new deps</text>
+<text id="e19" class="mono" x="655" y="396" fill="#1f5a96" font-size="14.5">$ pnpm typecheck · lint · test · e2e   all passing</text>
+<text id="e20" class="mono" x="655" y="430" fill="#3d5064" font-size="14.5">Agent Verified with commands and output. Remaining risk:</text>
+<text id="e21" class="mono" x="655" y="456" fill="#6d8095" font-size="14.5">invite tokens have no TTL — logged to decision-log.md</text>
+<text id="e22" class="mono" x="56" y="626" fill="#a82b21" font-weight="600" font-size="14.5">6 corrections · 5 conventions missed · 0 checks run</text>
+<text id="e23" class="mono" x="655" y="626" fill="#186052" font-weight="600" font-size="14.5">0 corrections · 0 missed · 4 checks run · memory updated</text>
+
+<text class="sans" x="34" y="658" fill="#8a5a10" font-size="11.5">Transcripts are written, not recorded. Each failure shown is a real pattern; the counts are illustrative.</text>
+<text class="mono" x="1206" y="658" fill="#6d8095" font-size="11" text-anchor="end">github.com/KingEmma7/cursor-os</text>
+</svg>
