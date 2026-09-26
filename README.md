@@ -19,6 +19,8 @@
 
 > **Unofficial project.** Cursor OS is a community-maintained installable layer for Cursor. It is not affiliated with, endorsed by, or maintained by Cursor or Anysphere.
 
+> **Release status:** This README tracks `main` and may describe commands before they ship to npm. The npm badge above shows the published version; `npx cursor-os` runs that version. If a command shown here (such as `detect` or `init --update`) is unavailable, check the source checkout or wait for the next release. To preview the published installer's file changes, run `npx cursor-os init --dry-run`.
+
 ---
 
 ## Quick start
